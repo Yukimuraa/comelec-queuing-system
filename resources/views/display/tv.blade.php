@@ -207,6 +207,12 @@
             fetch("{{ route('display.tv-status') }}")
                 .then(res => res.json())
                 .then(data => {
+                    // Mark this page as the active voice announcer (so admin tab can stay silent)
+                    try {
+                        localStorage.setItem('qms_voice_owner', 'tv');
+                        localStorage.setItem('qms_voice_owner_ts', String(Date.now()));
+                    } catch (e) {}
+
                     // Update Served count today
                     servedCount.innerText = data.served_count;
 

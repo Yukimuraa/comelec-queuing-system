@@ -39,7 +39,7 @@ class AdminController extends Controller
      */
     public function callNext(Request $request)
     {
-        $type = $request->input('type', 'regular');
+        $type = $request->input('type', 'next');
 
         // Automatically mark currently serving token as served to free the spot
         $currentServing = QueueToken::serving()->first();
@@ -54,14 +54,39 @@ class AdminController extends Controller
         if ($type === 'priority') {
             $nextToken = QueueToken::pending()->where('token_number', 'LIKE', 'P-%')->first();
             if (!$nextToken) {
+                if ($request->ajax() || $request->expectsJson()) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'No pending priority tokens in the queue.'
+                    ], 422);
+                }
                 return redirect()->route('admin.dashboard')
                     ->with('warning', 'No pending priority tokens in the queue.');
             }
-        } else {
+        } elseif ($type === 'regular') {
             $nextToken = QueueToken::pending()->where('token_number', 'NOT LIKE', 'P-%')->first();
             if (!$nextToken) {
+                if ($request->ajax() || $request->expectsJson()) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'No pending regular tokens in the queue.'
+                    ], 422);
+                }
                 return redirect()->route('admin.dashboard')
                     ->with('warning', 'No pending regular tokens in the queue.');
+            }
+        } else {
+            // General FIFO: Get the oldest pending token overall
+            $nextToken = QueueToken::pending()->first();
+            if (!$nextToken) {
+                if ($request->ajax() || $request->expectsJson()) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'No pending tokens in the queue.'
+                    ], 422);
+                }
+                return redirect()->route('admin.dashboard')
+                    ->with('warning', 'No pending tokens in the queue.');
             }
         }
 
@@ -70,6 +95,14 @@ class AdminController extends Controller
             'status' => 'serving',
             'called_at' => Carbon::now()
         ]);
+
+        if ($request->ajax() || $request->expectsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => "Token {$nextToken->token_number} called.",
+                'token' => $nextToken
+            ]);
+        }
 
         return redirect()->route('admin.dashboard')
             ->with('success', "Token {$nextToken->token_number} called.");
@@ -85,6 +118,13 @@ class AdminController extends Controller
             'served_at' => Carbon::now()
         ]);
 
+        if (request()->ajax() || request()->expectsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => "Token {$token->token_number} marked as served."
+            ]);
+        }
+
         return redirect()->route('admin.dashboard')
             ->with('success', "Token {$token->token_number} marked as served.");
     }
@@ -98,6 +138,13 @@ class AdminController extends Controller
             'status' => 'skipped'
         ]);
 
+        if (request()->ajax() || request()->expectsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => "Token {$token->token_number} marked as skipped."
+            ]);
+        }
+
         return redirect()->route('admin.dashboard')
             ->with('info', "Token {$token->token_number} marked as skipped.");
     }
@@ -110,6 +157,13 @@ class AdminController extends Controller
         $token->update([
             'called_at' => Carbon::now()
         ]);
+
+        if (request()->ajax() || request()->expectsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => "Token {$token->token_number} recalled."
+            ]);
+        }
 
         return redirect()->route('admin.dashboard')
             ->with('success', "Token {$token->token_number} recalled.");
@@ -126,6 +180,14 @@ class AdminController extends Controller
 
         Setting::set('daily_limit', $request->input('daily_limit'));
 
+        if ($request->ajax() || $request->expectsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Daily capacity limit updated successfully.',
+                'daily_limit' => Setting::get('daily_limit')
+            ]);
+        }
+
         return redirect()->route('admin.dashboard')
             ->with('success', 'Daily capacity limit updated successfully.');
     }
@@ -137,6 +199,13 @@ class AdminController extends Controller
     {
         // Delete all queue tokens to clear/archive today's session
         QueueToken::truncate();
+
+        if (request()->ajax() || request()->expectsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Queue session reset successfully. All counters cleared.'
+            ]);
+        }
 
         return redirect()->route('admin.dashboard')
             ->with('success', 'Queue session reset successfully. All counters cleared.');
@@ -176,5 +245,129 @@ class AdminController extends Controller
         }
 
         return view('admin.print', compact('tokens', 'type'));
+    }
+
+    /**
+     * Get the current queue status for the Admin Dashboard (AJAX polling).
+     */
+    public function status()
+    {
+        $serving = QueueToken::serving()->first();
+        $pending = QueueToken::pending()->get();
+        $served = QueueToken::served()->get();
+
+        $dailyLimit = (int) Setting::get('daily_limit', 100);
+        $totalToday = QueueToken::today()->count();
+        $servedCount = QueueToken::today()->where('status', 'served')->count();
+
+        // Pending queue with position
+        $pendingData = $pending->map(function ($item, $index) {
+            return [
+                'id' => $item->id,
+                'token_number' => $item->token_number,
+                'position' => $index + 1,
+                'created_at_iso' => $item->created_at->toIso8601String(),
+            ];
+        });
+
+        // History: only served tokens
+        $historyData = $served->sortByDesc('served_at')->take(10)->map(function ($item) {
+            return [
+                'id' => $item->id,
+                'token_number' => $item->token_number,
+                'status' => $item->status,
+                'served_at_iso' => $item->served_at ? $item->served_at->toIso8601String() : $item->updated_at->toIso8601String(),
+            ];
+        });
+
+        return response()->json([
+            'serving' => $serving ? [
+                'id' => $serving->id,
+                'token_number' => $serving->token_number,
+                'called_at_iso' => $serving->called_at ? $serving->called_at->toIso8601String() : null,
+            ] : null,
+            'pending' => $pendingData,
+            'history' => $historyData,
+            'dailyLimit' => $dailyLimit,
+            'totalToday' => $totalToday,
+            'servedCount' => $servedCount,
+            'capacityPercent' => $dailyLimit > 0 ? min(100, ($totalToday / $dailyLimit) * 100) : 0,
+        ]);
+    }
+
+    /**
+     * Display the Daily Report page.
+     */
+    public function report()
+    {
+        $tokens = QueueToken::today()->orderBy('created_at', 'asc')->get();
+
+        $totalCount = $tokens->count();
+        $servedCount = $tokens->where('status', 'served')->count();
+        $skippedCount = $tokens->where('status', 'skipped')->count();
+        $pendingCount = $tokens->where('status', 'pending')->count();
+        $servingCount = $tokens->where('status', 'serving')->count();
+
+        $priorityCount = $tokens->filter(function($t) { return str_starts_with($t->token_number, 'P'); })->count();
+        $regularCount = $totalCount - $priorityCount;
+
+        // Calculate average Wait Time (created_at to called_at) in seconds
+        $waitTimes = [];
+        $serviceTimes = [];
+
+        foreach ($tokens as $token) {
+            if ($token->called_at && $token->created_at) {
+                $waitTimes[] = $token->called_at->diffInSeconds($token->created_at);
+            }
+            if ($token->served_at && $token->called_at) {
+                $serviceTimes[] = $token->served_at->diffInSeconds($token->called_at);
+            }
+        }
+
+        $avgWaitTime = count($waitTimes) > 0 ? round(array_sum($waitTimes) / count($waitTimes)) : 0;
+        $avgServiceTime = count($serviceTimes) > 0 ? round(array_sum($serviceTimes) / count($serviceTimes)) : 0;
+
+        // Format duration to human readable (e.g. 2m 14s)
+        $formatDuration = function($seconds) {
+            if ($seconds <= 0) return '0s';
+            $m = floor($seconds / 60);
+            $s = $seconds % 60;
+            return $m > 0 ? "{$m}m {$s}s" : "{$s}s";
+        };
+
+        $avgWaitStr = $formatDuration($avgWaitTime);
+        $avgServiceStr = $formatDuration($avgServiceTime);
+
+        // Group tokens by registration hour to show peak hours (8 AM - 6 PM)
+        $hourlyDistribution = [];
+        for ($i = 8; $i <= 18; $i++) {
+            $hourStr = str_pad($i, 2, '0', STR_PAD_LEFT) . ':00';
+            $hourlyDistribution[$hourStr] = 0;
+        }
+
+        foreach ($tokens as $token) {
+            $hour = $token->created_at->format('H');
+            $hourStr = $hour . ':00';
+            if (isset($hourlyDistribution[$hourStr])) {
+                $hourlyDistribution[$hourStr]++;
+            } else {
+                $hourlyDistribution[$hourStr] = 1;
+            }
+        }
+
+        return view('admin.report', compact(
+            'tokens',
+            'totalCount',
+            'servedCount',
+            'skippedCount',
+            'pendingCount',
+            'servingCount',
+            'priorityCount',
+            'regularCount',
+            'avgWaitStr',
+            'avgServiceStr',
+            'hourlyDistribution',
+            'formatDuration'
+        ));
     }
 }

@@ -13,6 +13,8 @@ Route::get('/', function () {
 // Admin Dashboard Routes
 Route::prefix('admin')->group(function () {
     Route::get('/', [AdminController::class, 'index'])->name('admin.dashboard');
+    Route::get('/status', [AdminController::class, 'status'])->name('admin.dashboard-status');
+    Route::get('/report', [AdminController::class, 'report'])->name('admin.report');
     Route::post('/call-next', [AdminController::class, 'callNext'])->name('admin.call-next');
     Route::post('/serve/{token}', [AdminController::class, 'serve'])->name('admin.serve');
     Route::post('/skip/{token}', [AdminController::class, 'skip'])->name('admin.skip');

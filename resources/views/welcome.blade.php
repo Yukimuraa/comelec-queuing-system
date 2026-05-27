@@ -77,7 +77,7 @@
         </div>
 
         <!-- System Interface Grid -->
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-8 w-full">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8 w-full max-w-4xl">
             
             <!-- Card 1: Admin Dashboard -->
             <a href="{{ route('admin.dashboard') }}" class="glass-portal-card rounded-3xl p-8 flex flex-col h-80 justify-between group">
@@ -100,28 +100,7 @@
                 </div>
             </a>
 
-            <!-- Card 2: Client Scanner Station -->
-            <a href="{{ route('client.scan') }}" class="glass-portal-card rounded-3xl p-8 flex flex-col h-80 justify-between group">
-                <div class="flex flex-col">
-                    <div class="w-12 h-12 rounded-2xl bg-emerald-100 flex items-center justify-center text-emerald-600 mb-6 group-hover:scale-110 transition-transform duration-300">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0a8 8 0 11-16 0 8 8 0 0116 0z" />
-                        </svg>
-                    </div>
-                    <h3 class="text-2xl font-bold text-gray-900 mb-2">Client Scan Station</h3>
-                    <p class="text-gray-600 text-sm leading-relaxed">
-                        Allows clients to scan their pre-printed QR code tokens using physical barcode scanners or an attached web camera.
-                    </p>
-                </div>
-                <div class="flex items-center gap-2 text-emerald-400 text-sm font-bold mt-4">
-                    <span>Launch Scan Station</span>
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 transform group-hover:translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M14 5l7 7m0 0l-7 7m7-7H3" />
-                    </svg>
-                </div>
-            </a>
-
-            <!-- Card 3: TV Display Screen -->
+            <!-- Card 2: TV Display Screen -->
             <a href="{{ route('display.tv') }}" class="glass-portal-card rounded-3xl p-8 flex flex-col h-80 justify-between group">
                 <div class="flex flex-col">
                     <div class="w-12 h-12 rounded-2xl bg-blue-100 flex items-center justify-center text-blue-600 mb-6 group-hover:scale-110 transition-transform duration-300">

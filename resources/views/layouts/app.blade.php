@@ -108,15 +108,30 @@
             </div>
         </a>
 
+        <!-- Live Clock -->
+        <div class="hidden md:flex items-center gap-3 bg-white/40 border border-gray-200 px-4 py-1.5 rounded-2xl">
+            <div class="w-8 h-8 rounded-xl bg-indigo-500/10 text-indigo-500 flex items-center justify-center border border-indigo-500/20 shadow-inner">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4.5 w-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+            </div>
+            <div class="flex flex-col text-left">
+                <span id="liveTime" class="text-sm font-extrabold text-gray-900 font-mono leading-none tracking-wide"></span>
+                <span id="liveDate" class="text-[9px] font-bold text-gray-500 uppercase tracking-widest mt-1.5 leading-none"></span>
+            </div>
+        </div>
+
         <!-- Portal quick links -->
         <nav class="flex items-center gap-2 md:gap-4">
             <a href="{{ url('/') }}" class="px-4 py-2 text-sm font-semibold rounded-lg hover:bg-gray-100 transition-colors text-gray-600">
                 Portal Home
             </a>
-            <a href="{{ route('client.scan') }}" class="px-4 py-2 text-sm font-semibold rounded-lg hover:bg-gray-100 transition-colors text-gray-600 flex items-center gap-1.5">
-                <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-                Scan Station
+            @if(request()->is('admin*'))
+            <a href="{{ route('admin.report') }}" class="px-4 py-2 text-sm font-semibold rounded-lg hover:bg-gray-100 transition-colors text-gray-600 flex items-center gap-1.5">
+                <span class="w-2 h-2 rounded-full bg-blue-500 animate-pulse"></span>
+                Daily Report
             </a>
+            @endif
             <a href="{{ route('display.tv') }}" class="px-4 py-2 text-sm font-semibold rounded-lg hover:bg-gray-100 transition-colors text-gray-600 flex items-center gap-1.5">
                 <span class="w-2 h-2 rounded-full bg-indigo-500 animate-pulse"></span>
                 TV Display
@@ -135,5 +150,58 @@
     </footer>
 
     @yield('scripts')
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // Live Clock
+            function updateLiveTime() {
+                const now = new Date();
+                const timeStr = now.toLocaleTimeString('en-US', { 
+                    hour: '2-digit', 
+                    minute: '2-digit', 
+                    second: '2-digit', 
+                    hour12: true 
+                });
+                const dateStr = now.toLocaleDateString('en-US', { 
+                    weekday: 'short', 
+                    month: 'short', 
+                    day: 'numeric', 
+                    year: 'numeric' 
+                });
+                
+                const timeEl = document.getElementById('liveTime');
+                const dateEl = document.getElementById('liveDate');
+                if (timeEl) timeEl.textContent = timeStr;
+                if (dateEl) dateEl.textContent = dateStr;
+            }
+            updateLiveTime();
+            setInterval(updateLiveTime, 1000);
+
+            // Global Device Time Formatter Helper
+            window.formatDeviceTimes = function() {
+                const elements = document.querySelectorAll('.device-time');
+                elements.forEach(el => {
+                    const timestamp = el.getAttribute('data-timestamp');
+                    if (timestamp) {
+                        const date = new Date(timestamp);
+                        if (!isNaN(date.getTime())) {
+                            const showSeconds = el.getAttribute('data-seconds') === 'true';
+                            el.textContent = date.toLocaleTimeString([], { 
+                                hour: '2-digit', 
+                                minute: '2-digit',
+                                second: showSeconds ? '2-digit' : undefined,
+                                hour12: true 
+                            });
+                        } else {
+                            el.textContent = '---';
+                        }
+                    }
+                });
+            };
+
+            // Initial call to format times on page load
+            window.formatDeviceTimes();
+        });
+    </script>
 </body>
 </html>

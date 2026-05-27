@@ -2,8 +2,6 @@
 
 @section('styles')
 <style>
-
-
     /* Pulse glow on "Now Serving" number when active */
     .serving-active {
         animation: servingPulse 2s infinite ease-in-out;
@@ -13,50 +11,22 @@
         50%      { text-shadow: 0 0 50px rgba(99,102,241,0.7), 0 0 80px rgba(99,102,241,0.3); }
     }
 
-    /* Toast slide-in */
-    #scanToast {
-        transition: opacity 0.3s ease, transform 0.3s ease;
+    /* Custom Toast slide animation */
+    .toast-enter {
+        animation: slideInRight 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
     }
-    #scanToast.hidden-toast {
-        opacity: 0;
-        transform: translateY(10px);
-        pointer-events: none;
+    @keyframes slideInRight {
+        from { transform: translateX(100%) translateY(0px); opacity: 0; }
+        to { transform: translateX(0) translateY(0px); opacity: 1; }
     }
 </style>
 @endsection
 
 @section('content')
-<div class="fade-in grid grid-cols-1 lg:grid-cols-12 gap-6 items-start w-full">
+<div class="fade-in grid grid-cols-1 lg:grid-cols-12 gap-6 items-start w-full relative">
 
-    {{-- ─── Flash Messages ───────────────────────────────────────────── --}}
-    @if(session('success') || session('warning') || session('info'))
-    <div class="lg:col-span-12">
-        @if(session('success'))
-        <div class="p-4 bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 rounded-2xl flex items-center gap-3">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
-            </svg>
-            <span class="text-sm font-semibold">{{ session('success') }}</span>
-        </div>
-        @endif
-        @if(session('warning'))
-        <div class="p-4 bg-amber-500/10 border border-amber-500/20 text-amber-400 rounded-2xl flex items-center gap-3">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
-            </svg>
-            <span class="text-sm font-semibold">{{ session('warning') }}</span>
-        </div>
-        @endif
-        @if(session('info'))
-        <div class="p-4 bg-blue-500/10 border border-blue-500/20 text-blue-400 rounded-2xl flex items-center gap-3">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
-            </svg>
-            <span class="text-sm font-semibold">{{ session('info') }}</span>
-        </div>
-        @endif
-    </div>
-    @endif
+    {{-- Toast Stack Container --}}
+    <div id="toastContainer" class="fixed top-5 right-5 z-50 flex flex-col gap-3 max-w-sm w-full no-print"></div>
 
     {{-- ─── STAT CARDS (top row) ─────────────────────────────────────── --}}
     <div class="lg:col-span-12 grid grid-cols-1 md:grid-cols-3 gap-5">
@@ -65,7 +35,7 @@
         <div class="glass-panel rounded-3xl p-6 border border-gray-200 flex flex-col justify-between">
             <div class="flex items-center justify-between mb-3">
                 <span class="text-xs font-bold text-gray-500 uppercase tracking-widest">Daily Capacity</span>
-                <span class="text-xs px-2.5 py-1 bg-blue-500/10 text-blue-400 border border-blue-500/20 rounded-full font-bold">
+                <span id="capacityLabel" class="text-xs px-2.5 py-1 bg-blue-500/10 text-blue-400 border border-blue-500/20 rounded-full font-bold">
                     {{ $totalToday }} / {{ $dailyLimit }}
                 </span>
             </div>
@@ -73,12 +43,12 @@
                 $pct      = $dailyLimit > 0 ? min(100, ($totalToday / $dailyLimit) * 100) : 0;
                 $barColor = $pct >= 90 ? 'bg-rose-500' : ($pct >= 75 ? 'bg-amber-500' : 'bg-blue-500');
             @endphp
-            <div class="w-full bg-gray-50 h-3 rounded-full overflow-hidden border border-gray-300">
-                <div class="h-full {{ $barColor }} transition-all duration-500" style="width:{{ $pct }}%"></div>
+            <div id="capacityBarContainer" class="w-full bg-gray-50 h-3 rounded-full overflow-hidden border border-gray-300">
+                <div id="capacityBar" class="h-full {{ $barColor }} transition-all duration-500" style="width:{{ $pct }}%"></div>
             </div>
-            <form action="{{ route('admin.update-settings') }}" method="POST" class="mt-4 flex items-center gap-2">
+            <form id="settingsForm" action="{{ route('admin.update-settings') }}" method="POST" class="mt-4 flex items-center gap-2">
                 @csrf
-                <input type="number" name="daily_limit" value="{{ $dailyLimit }}" min="1" max="999"
+                <input type="number" id="dailyLimitInput" name="daily_limit" value="{{ $dailyLimit }}" min="1" max="999"
                        class="flex-1 px-3 py-1.5 bg-gray-50 rounded-lg text-sm text-center text-gray-900 border border-gray-200 focus:border-blue-500 focus:outline-none font-bold">
                 <button type="submit" class="px-4 py-1.5 bg-gray-800 hover:bg-gray-700 text-gray-200 text-xs font-bold rounded-lg border border-gray-700 transition-colors">
                     Set Limit
@@ -90,7 +60,7 @@
         <div class="glass-panel rounded-3xl p-6 border border-gray-200 flex items-center justify-between bg-gradient-to-r from-gray-950/50 to-indigo-950/10">
             <div class="flex flex-col">
                 <span class="text-xs font-bold text-gray-500 uppercase tracking-widest">Total Served</span>
-                <span class="text-4xl font-extrabold text-gray-900 mt-1">{{ $servedCount }}</span>
+                <span id="servedCountLabel" class="text-4xl font-extrabold text-gray-900 mt-1">{{ $servedCount }}</span>
                 <span class="text-xs text-gray-500 mt-1">Completed today</span>
             </div>
             <div class="w-12 h-12 rounded-2xl bg-indigo-500/10 flex items-center justify-center text-indigo-400 border border-indigo-500/20">
@@ -104,7 +74,7 @@
         <div class="glass-panel rounded-3xl p-6 border border-gray-200 flex items-center justify-between">
             <div class="flex flex-col">
                 <span class="text-xs font-bold text-gray-500 uppercase tracking-widest">Waiting in Queue</span>
-                <span class="text-4xl font-extrabold text-gray-900 mt-1">{{ $pending->count() }}</span>
+                <span id="waitingCountLabel" class="text-4xl font-extrabold text-gray-900 mt-1">{{ $pending->count() }}</span>
                 <span class="text-xs text-gray-500 mt-1">In pending state</span>
             </div>
             <div class="w-12 h-12 rounded-2xl bg-amber-500/10 flex items-center justify-center text-amber-400 border border-amber-500/20">
@@ -125,79 +95,24 @@
             {{-- Header --}}
             <div class="flex items-center justify-between border-b border-gray-300 pb-4">
                 <h3 class="text-sm font-bold text-gray-600 uppercase tracking-widest flex items-center gap-2">
-                    <span class="w-2 h-2 rounded-full bg-indigo-500 animate-ping"></span>
+                    <span id="activeStatusPing" class="w-2 h-2 rounded-full bg-gray-400"></span>
                     Counter Calling Board
                 </h3>
-                @if($serving)
-                <span class="text-xs font-bold text-indigo-400 bg-indigo-500/10 border border-indigo-500/20 px-2.5 py-1 rounded-full">Active</span>
-                @else
-                <span class="text-xs font-bold text-gray-600 bg-gray-50 border border-gray-300 px-2.5 py-1 rounded-full">Idle</span>
-                @endif
+                <span id="activeStatusLabel" class="text-xs font-bold text-gray-600 bg-gray-50 border border-gray-300 px-2.5 py-1 rounded-full">Idle</span>
             </div>
 
             {{-- Now Serving big number --}}
-            <div class="text-center py-4">
-                @if($serving)
-                <div class="text-xs font-bold text-indigo-400 uppercase tracking-widest mb-1">Now Serving</div>
-                <div id="servingNum"
-                     data-token="{{ $serving->token_number }}"
-                     class="text-8xl font-black text-gray-900 tracking-widest font-mono serving-active">
-                    {{ $serving->token_number }}
-                </div>
-                <p class="text-xs text-gray-500 mt-2">Called at {{ $serving->called_at->format('h:i:s A') }}</p>
-                @else
+            <div id="callingConsoleContainer" class="text-center py-4">
+                <div id="servingLabel" class="hidden text-xs font-bold text-indigo-400 uppercase tracking-widest mb-1">Now Serving</div>
                 <div id="servingNum" data-token="" class="text-gray-600 font-semibold text-lg py-6">
                     No client is currently being served
                 </div>
-                @endif
+                <p id="calledTimeLabel" class="hidden text-xs text-gray-500 mt-2"></p>
             </div>
 
             {{-- Action Buttons --}}
-            <div class="grid grid-cols-2 md:grid-cols-5 gap-3">
-                @if($serving)
-                <form action="{{ route('admin.serve', $serving->id) }}" method="POST">
-                    @csrf
-                    <button class="w-full py-3 bg-emerald-600 hover:bg-emerald-500 text-gray-900 font-bold text-sm rounded-2xl border border-emerald-500 transition-colors flex items-center justify-center gap-1.5 shadow-lg">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
-                        Serve
-                    </button>
-                </form>
-                <form action="{{ route('admin.skip', $serving->id) }}" method="POST">
-                    @csrf
-                    <button class="w-full py-3 bg-gray-800 hover:bg-rose-950 hover:text-rose-400 hover:border-rose-800 text-gray-300 font-bold text-sm rounded-2xl border border-gray-700 transition-all flex items-center justify-center gap-1.5">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/></svg>
-                        Skip
-                    </button>
-                </form>
-                <form action="{{ route('admin.recall', $serving->id) }}" method="POST">
-                    @csrf
-                    <button class="w-full py-3 bg-gray-800 hover:bg-gray-700 text-gray-200 font-bold text-sm rounded-2xl border border-gray-700 transition-colors flex items-center justify-center gap-1.5">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z"/></svg>
-                        Re-call
-                    </button>
-                </form>
-                @else
-                <div></div><div></div><div></div>
-                @endif
-
-                <form action="{{ route('admin.call-next') }}" method="POST"
-                      class="{{ $serving ? '' : 'col-span-1 md:col-span-1' }}">
-                    @csrf
-                    <input type="hidden" name="type" value="priority">
-                    <button class="w-full py-3 bg-amber-500 hover:bg-amber-400 text-white font-extrabold text-sm rounded-2xl border border-amber-500 transition-colors flex items-center justify-center gap-1.5 shadow-xl">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
-                        Priority
-                    </button>
-                </form>
-                <form action="{{ route('admin.call-next') }}" method="POST"
-                      class="{{ $serving ? '' : 'col-span-1 md:col-span-1' }}">
-                    @csrf
-                    <input type="hidden" name="type" value="regular">
-                    <button class="w-full py-3 bg-indigo-600 hover:bg-indigo-500 text-white font-extrabold text-sm rounded-2xl border border-indigo-500 transition-colors flex items-center justify-center gap-1.5 shadow-xl">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"/></svg>
-                        Regular
-                    </button>
-                </form>
+            <div id="callingButtonsContainer" class="grid grid-cols-2 md:grid-cols-5 gap-3">
+                <!-- Dynamically populated or updated by Javascript -->
             </div>
         </div>
 
@@ -236,9 +151,6 @@
                     <span class="text-sm font-semibold">Waiting for camera permission…</span>
                 </div>
             </div>
-
-            {{-- Scan result toast --}}
-            <div id="scanToast" class="hidden-toast opacity-0 px-4 py-3 rounded-2xl text-sm font-semibold flex items-center gap-3 border"></div>
         </div>
 
     </div>
@@ -261,7 +173,7 @@
                     <input type="hidden" name="type" value="batch">
                     <div class="flex-1">
                         <label class="text-[10px] uppercase font-bold text-gray-500 block mb-1">Queue Type</label>
-                        <select name="prefix" class="w-full px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm text-center text-gray-900 focus:outline-none">
+                        <select name="prefix" class="w-full px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm text-center text-gray-900 focus:outline-none font-bold">
                             <option value="">Regular</option>
                             <option value="P-">Priority</option>
                         </select>
@@ -269,14 +181,14 @@
                     <div class="flex-1">
                         <label class="text-[10px] uppercase font-bold text-gray-500 block mb-1">Start</label>
                         <input type="number" name="start" value="1" min="1" max="999"
-                               class="w-full px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm text-center text-gray-900 focus:outline-none">
+                               class="w-full px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm text-center text-gray-900 focus:outline-none font-bold">
                     </div>
                     <div class="flex-1">
                         <label class="text-[10px] uppercase font-bold text-gray-500 block mb-1">End</label>
                         <input type="number" name="end" value="50" min="1" max="999"
-                               class="w-full px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm text-center text-gray-900 focus:outline-none">
+                               class="w-full px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm text-center text-gray-900 focus:outline-none font-bold">
                     </div>
-                    <button type="submit" class="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-gray-900 font-bold text-sm rounded-lg border border-blue-500 transition-colors">
+                    <button type="submit" class="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-gray-900 font-bold text-sm rounded-lg border border-blue-500 transition-colors shadow">
                         Print
                     </button>
                 </form>
@@ -287,14 +199,14 @@
                 <form action="{{ route('admin.print') }}" method="GET" target="_blank" class="mt-3 flex items-end gap-2">
                     <input type="hidden" name="type" value="single">
                     <div class="w-24">
-                        <select name="prefix" class="w-full px-2 py-2 bg-white border border-gray-200 rounded-lg text-sm text-center text-gray-900 focus:outline-none">
+                        <select name="prefix" class="w-full px-2 py-2 bg-white border border-gray-200 rounded-lg text-sm text-center text-gray-900 focus:outline-none font-bold">
                             <option value="">Reg</option>
                             <option value="P-">Prio</option>
                         </select>
                     </div>
                     <input type="number" name="number" placeholder="e.g. 042" min="1" max="999" required
-                           class="flex-1 px-4 py-2 bg-white border border-gray-200 rounded-lg text-sm text-center text-gray-900 focus:outline-none">
-                    <button type="submit" class="px-5 py-2 bg-gray-800 hover:bg-gray-700 text-gray-200 font-bold text-sm rounded-lg border border-gray-700 transition-colors">
+                           class="flex-1 px-4 py-2 bg-white border border-gray-200 rounded-lg text-sm text-center text-gray-900 focus:outline-none font-bold">
+                    <button type="submit" class="px-5 py-2 bg-gray-800 hover:bg-gray-700 text-gray-200 font-bold text-sm rounded-lg border border-gray-700 transition-colors shadow">
                         Print
                     </button>
                 </form>
@@ -309,57 +221,32 @@
                 </svg>
                 Pending Queue (FIFO)
             </h3>
-            <div class="max-h-64 overflow-y-auto flex flex-col gap-2 pr-1">
-                @forelse($pending as $index => $item)
-                <div class="flex items-center justify-between p-3 bg-white/40 rounded-xl border border-gray-300/60">
-                    <div class="flex items-center gap-3">
-                        <span class="w-6 h-6 rounded-full bg-gray-50 text-gray-600 text-xs flex items-center justify-center font-bold">{{ $index + 1 }}</span>
-                        <span class="text-lg font-bold text-gray-900 font-mono tracking-widest">{{ $item->token_number }}</span>
-                    </div>
-                    <span class="text-[11px] text-gray-500 font-semibold uppercase">{{ $item->created_at->diffForHumans() }}</span>
-                </div>
-                @empty
-                <div class="text-center py-10 text-gray-600 font-semibold text-sm">No clients currently waiting</div>
-                @endforelse
+            <div id="pendingQueueList" class="max-h-64 overflow-y-auto flex flex-col gap-2 pr-1">
+                <!-- Dynamically loaded -->
             </div>
         </div>
 
-        {{-- HISTORY + RESET --}}
+        {{-- HISTORY (SERVED ONLY) + RESET --}}
         <div class="glass-panel rounded-3xl p-6 border border-gray-200 flex flex-col gap-4">
             <h3 class="text-sm font-bold text-gray-600 uppercase tracking-widest flex items-center gap-2 border-b border-gray-300 pb-3">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
                 </svg>
-                History (Served / Skipped)
+                History (Served)
             </h3>
 
-            <div class="max-h-48 overflow-y-auto flex flex-col gap-2 pr-1">
-                @php $history = $served->merge($skipped)->sortByDesc('updated_at')->take(10); @endphp
-                @forelse($history as $item)
-                <div class="flex items-center justify-between p-3 bg-white/20 rounded-xl border border-gray-300/40">
-                    <span class="text-base font-bold text-gray-600 font-mono tracking-widest">{{ $item->token_number }}</span>
-                    <div class="flex items-center gap-2">
-                        @if($item->status === 'served')
-                        <span class="text-[10px] font-bold uppercase px-2 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400">Served</span>
-                        @else
-                        <span class="text-[10px] font-bold uppercase px-2 py-0.5 rounded-full bg-rose-500/10 border border-rose-500/20 text-rose-400">Skipped</span>
-                        @endif
-                        <span class="text-[10px] text-gray-600">{{ $item->updated_at->format('h:i A') }}</span>
-                    </div>
-                </div>
-                @empty
-                <div class="text-center py-8 text-gray-600 font-semibold text-sm">No operations yet today</div>
-                @endforelse
+            <div id="historyList" class="max-h-48 overflow-y-auto flex flex-col gap-2 pr-1">
+                <!-- Dynamically loaded (Served tokens only) -->
             </div>
 
             <div class="flex justify-between items-center pt-4 border-t border-gray-300">
                 <div>
                     <span class="text-xs font-bold text-gray-600 uppercase tracking-widest">Clear Daily Counter</span>
-                    <p class="text-[10px] text-gray-600">Deletes all tokens and restarts from zero.</p>
+                    <p class="text-[10px] text-gray-650 font-semibold">Deletes all tokens and restarts from zero.</p>
                 </div>
-                <form action="{{ route('admin.reset') }}" method="POST" onsubmit="return confirmReset(event);">
+                <form id="resetQueueForm" action="{{ route('admin.reset') }}" method="POST" onsubmit="return confirmReset(event);">
                     @csrf
-                    <button type="submit" class="px-5 py-2.5 bg-rose-950 hover:bg-rose-900 text-rose-400 font-bold text-xs rounded-xl border border-rose-900/40 transition-colors">
+                    <button type="submit" class="px-5 py-2.5 bg-rose-950 hover:bg-rose-900 text-rose-400 font-bold text-xs rounded-xl border border-rose-900/40 transition-colors shadow">
                         Start New Day
                     </button>
                 </form>
@@ -379,11 +266,8 @@
 document.addEventListener('DOMContentLoaded', () => {
 
     /* ══════════════════════════════════════════════════════════
-       1. VOICE ANNOUNCEMENT – speak Now Serving number on load
+       1. VOICE & SOUND BROADCASTER
        ══════════════════════════════════════════════════════════ */
-    const servingEl = document.getElementById('servingNum');
-    const servingToken = servingEl ? servingEl.dataset.token : '';
-
     function speakToken(token) {
         if (!token || !window.speechSynthesis) return;
         window.speechSynthesis.cancel();
@@ -415,7 +299,18 @@ document.addEventListener('DOMContentLoaded', () => {
         } catch(e) {}
     }
 
-    // Pre-load voices (Chrome async requirement)
+    function tvVoiceIsActive() {
+        try {
+            const owner = localStorage.getItem('qms_voice_owner');
+            const tsRaw = localStorage.getItem('qms_voice_owner_ts');
+            const ts = tsRaw ? Number(tsRaw) : 0;
+            // If the TV display page is running (recent heartbeat), let it handle the voice.
+            return owner === 'tv' && Number.isFinite(ts) && (Date.now() - ts) < 6000;
+        } catch (e) {
+            return false;
+        }
+    }
+
     if (window.speechSynthesis) {
         window.speechSynthesis.getVoices();
         if (window.speechSynthesis.onvoiceschanged !== undefined) {
@@ -423,29 +318,331 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // Announce on page load only if there is an active serving token
-    // (page reloads after "Call Next", so token will be fresh every time)
-    if (servingToken) {
-        // Small delay so the browser voice engine is ready
-        setTimeout(() => {
-            playChime();
-            setTimeout(() => speakToken(servingToken), 750);
-        }, 600);
-    }
 
     /* ══════════════════════════════════════════════════════════
-       2. EMBEDDED QR SCANNER  (external USB/webcam camera)
+       2. DYNAMIC FLOATING TOASTS
+       ══════════════════════════════════════════════════════════ */
+    function showToast(success, message) {
+        const container = document.getElementById('toastContainer');
+        const toast = document.createElement('div');
+        toast.className = `p-4 rounded-2xl text-xs font-bold flex items-center gap-3 border shadow-xl bg-white/90 backdrop-blur-md toast-enter transition-all duration-300 ` + 
+            (success 
+                ? 'border-emerald-500/30 text-emerald-600' 
+                : 'border-rose-500/30 text-rose-600');
+                
+        toast.innerHTML = `
+            <div class="w-6 h-6 rounded-lg flex items-center justify-center shrink-0 ${success ? 'bg-emerald-500/10' : 'bg-rose-500/10'}">
+                <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    ${success 
+                        ? '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>'
+                        : '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/>'
+                    }
+                </svg>
+            </div>
+            <span>${message}</span>
+        `;
+        
+        container.appendChild(toast);
+        
+        // Remove after 3.5 seconds
+        setTimeout(() => {
+            toast.style.opacity = '0';
+            toast.style.transform = 'translateY(-10px)';
+            setTimeout(() => toast.remove(), 300);
+        }, 3500);
+    }
+
+
+    /* ══════════════════════════════════════════════════════════
+       3. INTERCEPT ALL FORMS & PROCESS VIA AJAX
+       ══════════════════════════════════════════════════════════ */
+    document.addEventListener('submit', (e) => {
+        const form = e.target;
+        
+        // If a form has action, and is NOT a target="_blank" reprint template
+        if (form.getAttribute('action') && !form.getAttribute('target')) {
+            e.preventDefault();
+            submitFormAjax(form);
+        }
+    });
+
+    function submitFormAjax(form) {
+        const url = form.getAttribute('action');
+        const method = form.getAttribute('method') || 'POST';
+        const formData = new FormData(form);
+
+        fetch(url, {
+            method: method,
+            headers: {
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                'X-Requested-With': 'XMLHttpRequest',
+                'Accept': 'application/json'
+            },
+            body: formData
+        })
+        .then(res => {
+            if (!res.ok) {
+                return res.json().then(data => { throw new Error(data.message || 'Action failed'); });
+            }
+            return res.json();
+        })
+        .then(data => {
+            if (data.success) {
+                showToast(true, data.message);
+                // Immediately refresh status
+                pollQueueStatus();
+            } else {
+                showToast(false, data.message || 'An error occurred.');
+            }
+        })
+        .catch(err => {
+            showToast(false, err.message || 'Operation failed. Please try again.');
+        });
+    }
+
+
+    /* ══════════════════════════════════════════════════════════
+       4. REAL-TIME QUEUE STATUS POLLING & DOM UPDATER
+       ══════════════════════════════════════════════════════════ */
+    let lastCalledId = null;
+    let lastCalledTimestamp = null;
+
+    function pollQueueStatus() {
+        fetch("{{ route('admin.dashboard-status') }}")
+            .then(res => res.json())
+            .then(data => {
+                // 1. Update stats counts
+                document.getElementById('capacityLabel').textContent = `${data.totalToday} / ${data.dailyLimit}`;
+                document.getElementById('dailyLimitInput').value = data.dailyLimit;
+                document.getElementById('servedCountLabel').textContent = data.servedCount;
+                document.getElementById('waitingCountLabel').textContent = data.pending.length;
+
+                // 2. Capacity bar color & width
+                const bar = document.getElementById('capacityBar');
+                bar.style.width = `${data.capacityPercent}%`;
+                bar.className = 'h-full transition-all duration-500 ' + 
+                    (data.capacityPercent >= 90 ? 'bg-rose-500' : (data.capacityPercent >= 75 ? 'bg-amber-500' : 'bg-blue-500'));
+
+                // 3. Now Serving calling console
+                const consoleDiv = document.getElementById('callingConsoleContainer');
+                const pingEl = document.getElementById('activeStatusPing');
+                const activeLabel = document.getElementById('activeStatusLabel');
+
+                if (data.serving) {
+                    const tokenNum = data.serving.token_number;
+                    const callId = data.serving.id;
+                    const callTs = data.serving.called_at_iso;
+
+                    // Header active markers
+                    pingEl.className = 'w-2 h-2 rounded-full bg-indigo-500 animate-ping';
+                    activeLabel.textContent = 'Active';
+                    activeLabel.className = 'text-xs font-bold text-indigo-400 bg-indigo-500/10 border border-indigo-500/20 px-2.5 py-1 rounded-full';
+
+                    // Center big token
+                    consoleDiv.innerHTML = `
+                        <div id="servingLabel" class="text-xs font-bold text-indigo-400 uppercase tracking-widest mb-1">Now Serving</div>
+                        <div id="servingNum"
+                             data-token="${tokenNum}"
+                             class="text-8xl font-black text-gray-900 tracking-widest font-mono serving-active">
+                            ${tokenNum}
+                        </div>
+                        <p id="calledTimeLabel" class="text-xs text-gray-500 mt-2">
+                            Called at <span class="device-time" data-timestamp="${callTs}" data-seconds="true"></span>
+                        </p>
+                    `;
+
+                    // Generate calling action buttons
+                    document.getElementById('callingButtonsContainer').innerHTML = `
+                        <form action="/admin/serve/${callId}" method="POST">
+                            @csrf
+                            <button class="w-full py-3 bg-emerald-600 hover:bg-emerald-500 text-gray-900 font-bold text-sm rounded-2xl border border-emerald-500 transition-colors flex items-center justify-center gap-1.5 shadow-lg">
+                                <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+                                Serve
+                            </button>
+                        </form>
+                        <form action="/admin/skip/${callId}" method="POST">
+                            @csrf
+                            <button class="w-full py-3 bg-gray-800 hover:bg-rose-950 hover:text-rose-400 hover:border-rose-800 text-gray-300 font-bold text-sm rounded-2xl border border-gray-700 transition-all flex items-center justify-center gap-1.5">
+                                <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/></svg>
+                                Skip
+                            </button>
+                        </form>
+                        <form action="/admin/recall/${callId}" method="POST">
+                            @csrf
+                            <button class="w-full py-3 bg-gray-800 hover:bg-gray-700 text-gray-200 font-bold text-sm rounded-2xl border border-gray-700 transition-colors flex items-center justify-center gap-1.5">
+                                <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z"/></svg>
+                                Re-call
+                            </button>
+                        </form>
+                        <form action="{{ route('admin.call-next') }}" method="POST">
+                            @csrf
+                            <input type="hidden" name="type" value="next">
+                            <button class="w-full py-3 bg-indigo-650 text-white font-extrabold text-sm rounded-2xl border border-indigo-600 flex items-center justify-center gap-1.5 shadow-xl">
+                                <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"/></svg>
+                                Call Next
+                            </button>
+                        </form>
+                        <div class="grid grid-cols-2 gap-2">
+                            <form action="{{ route('admin.call-next') }}" method="POST">
+                                @csrf
+                                <input type="hidden" name="type" value="priority">
+                                <button class="w-full py-3 bg-amber-500 hover:bg-amber-400 text-white font-bold text-xs rounded-2xl border border-amber-500 transition-colors flex items-center justify-center gap-1 shadow-xl">
+                                    Prio
+                                </button>
+                            </form>
+                            <form action="{{ route('admin.call-next') }}" method="POST">
+                                @csrf
+                                <input type="hidden" name="type" value="regular">
+                                <button class="w-full py-3 bg-indigo-500 hover:bg-indigo-400 text-white font-bold text-xs rounded-2xl border border-indigo-500 transition-colors flex items-center justify-center gap-1 shadow-xl">
+                                    Reg
+                                </button>
+                            </form>
+                        </div>
+                    `;
+
+                    // Voice Broadcast Trigger if newly called or recalled
+                    const announceKey = `${callId}-${callTs}`;
+                    if (window.lastAnnouncedKey !== announceKey) {
+                        window.lastAnnouncedKey = announceKey;
+                        // Avoid double announcements when the TV display is open in another tab/window.
+                        if (!tvVoiceIsActive()) {
+                            playChime();
+                            setTimeout(() => speakToken(tokenNum), 750);
+                        }
+                    }
+                    lastCalledId = callId;
+                    lastCalledTimestamp = callTs;
+                } else {
+                    // Counter idle state
+                    pingEl.className = 'w-2 h-2 rounded-full bg-gray-400';
+                    activeLabel.textContent = 'Idle';
+                    activeLabel.className = 'text-xs font-bold text-gray-650 bg-gray-50 border border-gray-300 px-2.5 py-1 rounded-full';
+
+                    consoleDiv.innerHTML = `
+                        <div id="servingNum" data-token="" class="text-gray-600 font-semibold text-lg py-6">
+                            No client is currently being served
+                        </div>
+                    `;
+
+                    document.getElementById('callingButtonsContainer').innerHTML = `
+                        <form action="{{ route('admin.call-next') }}" method="POST" class="col-span-2 md:col-span-3">
+                            @csrf
+                            <input type="hidden" name="type" value="next">
+                            <button class="w-full py-3 bg-indigo-650 text-white font-extrabold text-sm rounded-2xl border border-indigo-600 flex items-center justify-center gap-1.5 shadow-xl">
+                                <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"/></svg>
+                                Call Next (FIFO)
+                            </button>
+                        </form>
+                        <form action="{{ route('admin.call-next') }}" method="POST" class="col-span-1">
+                            @csrf
+                            <input type="hidden" name="type" value="priority">
+                            <button class="w-full py-3 bg-amber-500 hover:bg-amber-400 text-white font-extrabold text-sm rounded-2xl border border-amber-500 transition-colors flex items-center justify-center gap-1.5 shadow-xl">
+                                <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+                                Priority
+                            </button>
+                        </form>
+                        <form action="{{ route('admin.call-next') }}" method="POST" class="col-span-1">
+                            @csrf
+                            <input type="hidden" name="type" value="regular">
+                            <button class="w-full py-3 bg-indigo-500 hover:bg-indigo-400 text-white font-extrabold text-sm rounded-2xl border border-indigo-500 transition-colors flex items-center justify-center gap-1.5 shadow-xl">
+                                <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"/></svg>
+                                Regular
+                            </button>
+                        </form>
+                    `;
+
+                    lastCalledId = null;
+                    lastCalledTimestamp = null;
+                }
+
+                // 4. Update Pending Queue List
+                const pendingListDiv = document.getElementById('pendingQueueList');
+                if (data.pending && data.pending.length > 0) {
+                    let pendingHtml = '';
+                    data.pending.forEach(item => {
+                        pendingHtml += `
+                            <div class="flex items-center justify-between p-3 bg-white/40 rounded-xl border border-gray-300/60">
+                                <div class="flex items-center gap-3">
+                                    <span class="w-6 h-6 rounded-full bg-gray-50 text-gray-600 text-xs flex items-center justify-center font-bold">${item.position}</span>
+                                    <span class="text-lg font-bold text-gray-900 font-mono tracking-widest">${item.token_number}</span>
+                                </div>
+                                <span class="text-[10px] text-gray-500 font-semibold uppercase device-time-diff" data-timestamp="${item.created_at_iso}">Waiting...</span>
+                            </div>
+                        `;
+                    });
+                    pendingListDiv.innerHTML = pendingHtml;
+                } else {
+                    pendingListDiv.innerHTML = '<div class="text-center py-10 text-gray-650 font-semibold text-sm">No clients currently waiting</div>';
+                }
+
+                // 5. Update History List (Served tokens only)
+                const historyListDiv = document.getElementById('historyList');
+                if (data.history && data.history.length > 0) {
+                    let historyHtml = '';
+                    data.history.forEach(item => {
+                        historyHtml += `
+                            <div class="flex items-center justify-between p-3 bg-white/20 rounded-xl border border-gray-300/40">
+                                <span class="text-base font-bold text-gray-600 font-mono tracking-widest">${item.token_number}</span>
+                                <div class="flex items-center gap-2">
+                                    <span class="text-[10px] font-bold uppercase px-2 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400">Served</span>
+                                    <span class="device-time text-[10px] text-gray-600 font-bold" data-timestamp="${item.served_at_iso}"></span>
+                                </div>
+                            </div>
+                        `;
+                    });
+                    historyListDiv.innerHTML = historyHtml;
+                } else {
+                    historyListDiv.innerHTML = '<div class="text-center py-8 text-gray-650 font-semibold text-sm">No operations yet today</div>';
+                }
+
+                // Apply device local times formatting to the newly injected elements
+                if (window.formatDeviceTimes) {
+                    window.formatDeviceTimes();
+                }
+                
+                // Formats relative time counters (e.g. 5m ago)
+                updateQueueDiffs();
+            })
+            .catch(err => {
+                console.error("Dashboard status sync error:", err);
+            });
+    }
+
+    // Client device wait-time helper (e.g. "5 mins ago")
+    function updateQueueDiffs() {
+        const elements = document.querySelectorAll('.device-time-diff');
+        elements.forEach(el => {
+            const timestamp = el.getAttribute('data-timestamp');
+            if (timestamp) {
+                const created = new Date(timestamp);
+                const now = new Date();
+                const diffMs = now - created;
+                const diffMins = Math.floor(diffMs / 60000);
+                const diffSecs = Math.floor((diffMs % 60000) / 1000);
+                
+                if (diffMins > 0) {
+                    el.textContent = `${diffMins}m ${diffSecs}s ago`;
+                } else {
+                    el.textContent = `${diffSecs}s ago`;
+                }
+            }
+        });
+    }
+
+    // Update wait timers every second
+    setInterval(updateQueueDiffs, 1000);
+
+
+    /* ══════════════════════════════════════════════════════════
+       5. EMBEDDED QR SCANNER SYSTEM (AJAX scanner integration)
        ══════════════════════════════════════════════════════════ */
     const toggleBtn    = document.getElementById('toggleScanner');
     const cameraSelect = document.getElementById('cameraSelect');
-    const previewDiv   = document.getElementById('scannerPreview');
     const idleOverlay  = document.getElementById('scannerIdle');
-    const toast        = document.getElementById('scanToast');
 
     let scanner     = null;
     let scannerActive = false;
 
-    // Populate camera list then auto-start on first available camera
     Html5Qrcode.getCameras().then(cams => {
         cameraSelect.innerHTML = '';
         if (!cams || cams.length === 0) {
@@ -458,13 +655,11 @@ document.addEventListener('DOMContentLoaded', () => {
             opt.text  = cam.label || `Camera ${cam.id.substr(0,6)}`;
             cameraSelect.appendChild(opt);
         });
-        // Auto-start with the first camera
         startScanner();
     }).catch(() => {
         cameraSelect.innerHTML = '<option>Permission denied</option>';
     });
 
-    // Camera change → restart scanner on new device
     cameraSelect.addEventListener('change', () => {
         if (scannerActive) stopScanner().then(() => startScanner());
         else startScanner();
@@ -519,7 +714,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function handleScan(raw) {
         const now = Date.now();
-        // Debounce: ignore same code re-scanned within 3 seconds
         if (raw === lastScanned && (now - lastScanTime) < 3000) return;
         lastScanned  = raw;
         lastScanTime = now;
@@ -528,21 +722,27 @@ document.addEventListener('DOMContentLoaded', () => {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest',
+                'Accept': 'application/json',
                 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
             },
             body: JSON.stringify({ token_number: raw })
         })
-        .then(r => r.json())
-        .then(data => {
-            if (data.success) {
-                playBeep('success');
-                showToast(true, `✔ Token ${data.token_number} registered — Queue position #${data.position}`);
-            } else {
-                playBeep('error');
-                showToast(false, '✘ ' + data.message);
+        .then(r => {
+            if (!r.ok) {
+                return r.json().then(data => { throw new Error(data.message || 'Scan failed'); });
             }
+            return r.json();
         })
-        .catch(() => showToast(false, 'Server error. Please try again.'));
+        .then(data => {
+            playBeep('success');
+            showToast(true, `✔ Token ${data.token_number} registered — Queue position #${data.position}`);
+            pollQueueStatus();
+        })
+        .catch(err => {
+            playBeep('error');
+            showToast(false, '✘ ' + err.message);
+        });
     }
 
     function playBeep(type) {
@@ -566,30 +766,21 @@ document.addEventListener('DOMContentLoaded', () => {
         } catch(e) {}
     }
 
-    let toastTimer = null;
-    function showToast(success, msg) {
-        toast.className = success
-            ? 'px-4 py-3 rounded-2xl text-sm font-semibold flex items-center gap-3 border bg-emerald-500/10 border-emerald-500/30 text-emerald-300'
-            : 'px-4 py-3 rounded-2xl text-sm font-semibold flex items-center gap-3 border bg-rose-500/10 border-rose-500/30 text-rose-300';
-        toast.textContent = msg;
-        toast.style.opacity = '1';
-        toast.style.transform = 'translateY(0)';
-
-        clearTimeout(toastTimer);
-        toastTimer = setTimeout(() => {
-            toast.style.opacity = '0';
-            toast.style.transform = 'translateY(10px)';
-        }, 4000);
-    }
 
     /* ══════════════════════════════════════════════════════════
-       3. RESET CONFIRMATION
+       6. BOOTSTRAP INITIALIZATION
        ══════════════════════════════════════════════════════════ */
     window.confirmReset = function(e) {
         const ok = confirm("WARNING: This will delete ALL tokens and reset today's counter to 0.\n\nAre you sure?");
         if (!ok) { e.preventDefault(); return false; }
         return true;
     };
+
+    // Load initial queue status on load
+    pollQueueStatus();
+
+    // Poll status updates dynamically every 2 seconds (live sync)
+    setInterval(pollQueueStatus, 2000);
 });
 </script>
 @endsection
