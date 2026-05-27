@@ -42,8 +42,8 @@
     
     <!-- Title -->
     <div class="text-center mb-8">
-        <h2 class="text-3xl font-extrabold text-white">Client Scan Station</h2>
-        <p class="text-gray-400 mt-2 text-sm">Scan your 3-digit physical token code to register in the queue</p>
+        <h2 class="text-3xl font-extrabold text-gray-900">Client Scan Station</h2>
+        <p class="text-gray-600 mt-2 text-sm">Scan your 3-digit physical token code to register in the queue</p>
     </div>
 
     <!-- Main Scan Card -->
@@ -75,8 +75,8 @@
                     name="token_number" 
                     placeholder="Enter or scan token..." 
                     autocomplete="off"
-                    maxlength="3"
-                    class="w-full px-6 py-4 bg-gray-950/80 rounded-2xl text-center text-3xl font-bold tracking-widest text-white border-2 border-gray-800 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 focus:outline-none transition-all"
+                    maxlength="5"
+                    class="w-full px-6 py-4 bg-gray-50/80 rounded-2xl text-center text-3xl font-bold tracking-widest text-gray-900 border-2 border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 focus:outline-none transition-all"
                 >
             </div>
             
@@ -87,16 +87,16 @@
 
         <!-- Divider -->
         <div class="flex items-center my-6 w-full max-w-sm">
-            <hr class="flex-1 border-gray-800">
+            <hr class="flex-1 border-gray-200">
             <span class="px-3 text-xs text-gray-500 font-bold uppercase tracking-wider">or</span>
-            <hr class="flex-1 border-gray-800">
+            <hr class="flex-1 border-gray-200">
         </div>
 
         <!-- Camera Button -->
         <button 
             type="button" 
             id="toggleCameraBtn" 
-            class="px-6 py-3 bg-gray-800 hover:bg-gray-700 text-gray-200 text-sm font-semibold rounded-xl flex items-center gap-2 border border-gray-700 transition-colors shadow-lg"
+            class="px-6 py-3 bg-white hover:bg-gray-700 text-gray-800 text-sm font-semibold rounded-xl flex items-center gap-2 border border-gray-300 transition-colors shadow-lg"
         >
             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
@@ -106,9 +106,9 @@
         </button>
 
         <!-- Webcam Container (Hidden by default) -->
-        <div id="cameraContainer" class="w-full max-w-sm mt-6 rounded-2xl overflow-hidden border border-gray-800 hidden bg-gray-950">
+        <div id="cameraContainer" class="w-full max-w-sm mt-6 rounded-2xl overflow-hidden border border-gray-200 hidden bg-gray-50">
             <div id="cameraPreview" class="w-full aspect-video"></div>
-            <div class="p-3 bg-gray-900 flex justify-between items-center text-xs text-gray-400">
+            <div class="p-3 bg-white flex justify-between items-center text-xs text-gray-600">
                 <span>Align QR inside frame</span>
                 <button type="button" id="closeCameraBtn" class="text-rose-400 hover:underline font-semibold">Close Camera</button>
             </div>
@@ -118,7 +118,7 @@
 </div>
 
 <!-- Dynamic Feedback Overlay -->
-<div id="feedbackOverlay" class="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-lg hidden fade-in transition-all">
+<div id="feedbackOverlay" class="fixed inset-0 z-50 flex items-center justify-center bg-white/80 backdrop-blur-lg hidden fade-in transition-all">
     <div class="w-full max-w-md p-8 rounded-3xl text-center glass-panel shadow-2xl flex flex-col items-center" id="feedbackCard">
         
         <!-- Status Icon -->
@@ -127,14 +127,14 @@
         </div>
 
         <!-- Content -->
-        <h3 class="text-3xl font-black mb-2 text-white" id="feedbackTitle">Status</h3>
-        <p class="text-gray-300 text-lg mb-6 leading-relaxed" id="feedbackMessage">Message details here...</p>
+        <h3 class="text-3xl font-black mb-2 text-gray-900" id="feedbackTitle">Status</h3>
+        <p class="text-gray-700 text-lg mb-6 leading-relaxed" id="feedbackMessage">Message details here...</p>
 
         <!-- Dynamic details (Position) -->
         <div id="positionDetails" class="hidden">
             <span class="text-xs uppercase text-gray-500 font-bold tracking-wider">Your Position in Queue</span>
             <div class="text-6xl font-black text-emerald-400 mt-1 mb-2" id="queuePosition">#5</div>
-            <span class="text-xs text-gray-400">Please wait for your number to be called on the TV screen</span>
+            <span class="text-xs text-gray-600">Please wait for your number to be called on the TV screen</span>
         </div>
     </div>
 </div>
@@ -190,13 +190,14 @@
             }
         });
 
-        // Trigger submit when input length is 3 (optional, let standard enter submit too)
+        // Trigger submit when input matches token format
         tokenInput.addEventListener('input', (e) => {
-            // Filter non-numbers
-            e.target.value = e.target.value.replace(/[^0-9]/g, '');
+            // Filter non-numbers and P-
+            let val = e.target.value.toUpperCase().replace(/[^0-9P\-]/g, '');
+            e.target.value = val;
             
-            if (e.target.value.length === 3) {
-                submitScan(e.target.value);
+            if (val.match(/^(?:P-)?\d{3}$/)) {
+                submitScan(val);
             }
         });
 
@@ -343,7 +344,7 @@
             if (cameraContainer.classList.contains('hidden')) {
                 // Open camera
                 cameraContainer.classList.remove('hidden');
-                toggleCameraBtn.classList.add('bg-blue-600', 'text-white');
+                toggleCameraBtn.classList.add('bg-blue-600', 'text-gray-900');
                 tokenInput.blur();
 
                 // Initialize scanner
@@ -380,7 +381,7 @@
                 }).catch(err => console.error(err));
             }
             cameraContainer.classList.add('hidden');
-            toggleCameraBtn.classList.remove('bg-blue-600', 'text-white');
+            toggleCameraBtn.classList.remove('bg-blue-600', 'text-gray-900');
             // Restore autofocus on physical input
             setTimeout(() => tokenInput.focus(), 50);
         }

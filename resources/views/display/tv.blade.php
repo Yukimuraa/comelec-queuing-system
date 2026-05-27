@@ -4,7 +4,7 @@
 <style>
     body {
         /* Custom darker TV layout background */
-        background: radial-gradient(circle at 50% 50%, #030712 0%, #000000 100%) !important;
+        background: radial-gradient(circle at 50% 50%, #ffffff 0%, #f3f4f6 100%) !important;
     }
     
     .serving-number {
@@ -55,7 +55,7 @@
     <div class="lg:col-span-8 flex flex-col justify-between p-10 rounded-3xl glass-panel pulse-glowing transition-all border border-indigo-500/20 text-center relative overflow-hidden flex-1 min-h-[450px]">
         <!-- Watermark / Background symbol -->
         <div class="absolute inset-0 opacity-[0.02] flex items-center justify-center pointer-events-none">
-            <svg class="w-96 h-96 text-white" fill="currentColor" viewBox="0 0 24 24">
+            <svg class="w-96 h-96 text-gray-900" fill="currentColor" viewBox="0 0 24 24">
                 <path d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
             </svg>
         </div>
@@ -68,7 +68,7 @@
 
         <!-- Token Number Render Box -->
         <div class="my-auto z-10 py-6" id="servingContainer">
-            <div class="serving-number text-white font-black tracking-widest font-mono" id="servingNumber">---</div>
+            <div class="serving-number text-gray-900 font-black tracking-widest font-mono" id="servingNumber">---</div>
             <div class="text-sm font-semibold uppercase tracking-widest text-gray-500 mt-4" id="servingStatusLabel">
                 Please wait for the next call
             </div>
@@ -85,8 +85,8 @@
     <div class="lg:col-span-4 flex flex-col gap-6 justify-between items-stretch">
         
         <!-- UP NEXT LIST -->
-        <div class="flex-1 glass-panel rounded-3xl p-6 flex flex-col border border-gray-800">
-            <h3 class="text-sm font-bold text-gray-400 uppercase tracking-widest mb-4 flex items-center gap-2 border-b border-gray-900 pb-3">
+        <div class="flex-1 glass-panel rounded-3xl p-6 flex flex-col border border-gray-200">
+            <h3 class="text-sm font-bold text-gray-400 uppercase tracking-widest mb-4 flex items-center gap-2 border-b border-gray-300 pb-3">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-indigo-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 5l7 7-7 7M5 5l7 7-7 7" />
                 </svg>
@@ -103,10 +103,10 @@
         </div>
 
         <!-- TOTAL SERVED STAT CARD -->
-        <div class="glass-panel rounded-3xl p-6 flex items-center justify-between border border-gray-800 bg-gradient-to-r from-gray-950/80 to-indigo-950/20">
+        <div class="glass-panel rounded-3xl p-6 flex items-center justify-between border border-gray-200 bg-gradient-to-r from-gray-50/80 to-gray-50/20">
             <div class="flex flex-col">
                 <span class="text-xs font-bold text-gray-500 uppercase tracking-widest">Served Today</span>
-                <span class="text-4xl font-extrabold text-white mt-1" id="servedCount">0</span>
+                <span class="text-4xl font-extrabold text-gray-900 mt-1" id="servedCount">0</span>
             </div>
             <div class="w-12 h-12 rounded-2xl bg-indigo-500/10 flex items-center justify-center text-indigo-400 border border-indigo-500/20">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -246,12 +246,12 @@
                         let html = '';
                         data.pending.forEach((item, index) => {
                             html += `
-                                <div class="flex items-center justify-between p-4 rounded-2xl bg-gray-900/50 border border-gray-800/80 animate-pulse">
+                                <div class="flex items-center justify-between p-4 rounded-2xl bg-white/50 border border-gray-200/80 animate-pulse">
                                     <div class="flex items-center gap-3">
                                         <span class="w-6 h-6 rounded-full bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 text-xs flex items-center justify-center font-bold">
                                             ${index + 1}
                                         </span>
-                                        <span class="text-xl font-bold text-gray-200 font-mono tracking-widest">${item.token_number}</span>
+                                        <span class="text-xl font-bold text-gray-800 font-mono tracking-widest">${item.token_number}</span>
                                     </div>
                                     <span class="text-xs font-semibold text-gray-600 uppercase tracking-widest">Waiting</span>
                                 </div>

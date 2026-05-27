@@ -2,23 +2,7 @@
 
 @section('styles')
 <style>
-    /* Scan laser animation on camera preview */
-    .scan-laser-overlay {
-        position: absolute;
-        top: 0; left: 0; right: 0;
-        height: 3px;
-        background: linear-gradient(90deg, transparent, #6366f1, #3b82f6, #6366f1, transparent);
-        box-shadow: 0 0 12px #6366f1;
-        animation: laserSweep 2.2s infinite linear;
-        z-index: 10;
-        pointer-events: none;
-        border-radius: 2px;
-    }
-    @keyframes laserSweep {
-        0%   { top: 5%; }
-        50%  { top: 90%; }
-        100% { top: 5%; }
-    }
+
 
     /* Pulse glow on "Now Serving" number when active */
     .serving-active {
@@ -78,7 +62,7 @@
     <div class="lg:col-span-12 grid grid-cols-1 md:grid-cols-3 gap-5">
 
         {{-- Capacity Card --}}
-        <div class="glass-panel rounded-3xl p-6 border border-gray-800 flex flex-col justify-between">
+        <div class="glass-panel rounded-3xl p-6 border border-gray-200 flex flex-col justify-between">
             <div class="flex items-center justify-between mb-3">
                 <span class="text-xs font-bold text-gray-500 uppercase tracking-widest">Daily Capacity</span>
                 <span class="text-xs px-2.5 py-1 bg-blue-500/10 text-blue-400 border border-blue-500/20 rounded-full font-bold">
@@ -89,13 +73,13 @@
                 $pct      = $dailyLimit > 0 ? min(100, ($totalToday / $dailyLimit) * 100) : 0;
                 $barColor = $pct >= 90 ? 'bg-rose-500' : ($pct >= 75 ? 'bg-amber-500' : 'bg-blue-500');
             @endphp
-            <div class="w-full bg-gray-950 h-3 rounded-full overflow-hidden border border-gray-900">
+            <div class="w-full bg-gray-50 h-3 rounded-full overflow-hidden border border-gray-300">
                 <div class="h-full {{ $barColor }} transition-all duration-500" style="width:{{ $pct }}%"></div>
             </div>
             <form action="{{ route('admin.update-settings') }}" method="POST" class="mt-4 flex items-center gap-2">
                 @csrf
                 <input type="number" name="daily_limit" value="{{ $dailyLimit }}" min="1" max="999"
-                       class="flex-1 px-3 py-1.5 bg-gray-950 rounded-lg text-sm text-center text-white border border-gray-800 focus:border-blue-500 focus:outline-none font-bold">
+                       class="flex-1 px-3 py-1.5 bg-gray-50 rounded-lg text-sm text-center text-gray-900 border border-gray-200 focus:border-blue-500 focus:outline-none font-bold">
                 <button type="submit" class="px-4 py-1.5 bg-gray-800 hover:bg-gray-700 text-gray-200 text-xs font-bold rounded-lg border border-gray-700 transition-colors">
                     Set Limit
                 </button>
@@ -103,10 +87,10 @@
         </div>
 
         {{-- Total Served --}}
-        <div class="glass-panel rounded-3xl p-6 border border-gray-800 flex items-center justify-between bg-gradient-to-r from-gray-950/50 to-indigo-950/10">
+        <div class="glass-panel rounded-3xl p-6 border border-gray-200 flex items-center justify-between bg-gradient-to-r from-gray-950/50 to-indigo-950/10">
             <div class="flex flex-col">
                 <span class="text-xs font-bold text-gray-500 uppercase tracking-widest">Total Served</span>
-                <span class="text-4xl font-extrabold text-white mt-1">{{ $servedCount }}</span>
+                <span class="text-4xl font-extrabold text-gray-900 mt-1">{{ $servedCount }}</span>
                 <span class="text-xs text-gray-500 mt-1">Completed today</span>
             </div>
             <div class="w-12 h-12 rounded-2xl bg-indigo-500/10 flex items-center justify-center text-indigo-400 border border-indigo-500/20">
@@ -117,10 +101,10 @@
         </div>
 
         {{-- Waiting --}}
-        <div class="glass-panel rounded-3xl p-6 border border-gray-800 flex items-center justify-between">
+        <div class="glass-panel rounded-3xl p-6 border border-gray-200 flex items-center justify-between">
             <div class="flex flex-col">
                 <span class="text-xs font-bold text-gray-500 uppercase tracking-widest">Waiting in Queue</span>
-                <span class="text-4xl font-extrabold text-white mt-1">{{ $pending->count() }}</span>
+                <span class="text-4xl font-extrabold text-gray-900 mt-1">{{ $pending->count() }}</span>
                 <span class="text-xs text-gray-500 mt-1">In pending state</span>
             </div>
             <div class="w-12 h-12 rounded-2xl bg-amber-500/10 flex items-center justify-center text-amber-400 border border-amber-500/20">
@@ -136,18 +120,18 @@
     <div class="lg:col-span-7 flex flex-col gap-6">
 
         {{-- CALLING CONSOLE --}}
-        <div class="glass-panel rounded-3xl p-7 border border-gray-800 flex flex-col gap-5">
+        <div class="glass-panel rounded-3xl p-7 border border-gray-200 flex flex-col gap-5">
 
             {{-- Header --}}
-            <div class="flex items-center justify-between border-b border-gray-900 pb-4">
-                <h3 class="text-sm font-bold text-gray-400 uppercase tracking-widest flex items-center gap-2">
+            <div class="flex items-center justify-between border-b border-gray-300 pb-4">
+                <h3 class="text-sm font-bold text-gray-600 uppercase tracking-widest flex items-center gap-2">
                     <span class="w-2 h-2 rounded-full bg-indigo-500 animate-ping"></span>
                     Counter Calling Board
                 </h3>
                 @if($serving)
                 <span class="text-xs font-bold text-indigo-400 bg-indigo-500/10 border border-indigo-500/20 px-2.5 py-1 rounded-full">Active</span>
                 @else
-                <span class="text-xs font-bold text-gray-600 bg-gray-950 border border-gray-900 px-2.5 py-1 rounded-full">Idle</span>
+                <span class="text-xs font-bold text-gray-600 bg-gray-50 border border-gray-300 px-2.5 py-1 rounded-full">Idle</span>
                 @endif
             </div>
 
@@ -157,7 +141,7 @@
                 <div class="text-xs font-bold text-indigo-400 uppercase tracking-widest mb-1">Now Serving</div>
                 <div id="servingNum"
                      data-token="{{ $serving->token_number }}"
-                     class="text-8xl font-black text-white tracking-widest font-mono serving-active">
+                     class="text-8xl font-black text-gray-900 tracking-widest font-mono serving-active">
                     {{ $serving->token_number }}
                 </div>
                 <p class="text-xs text-gray-500 mt-2">Called at {{ $serving->called_at->format('h:i:s A') }}</p>
@@ -169,11 +153,11 @@
             </div>
 
             {{-- Action Buttons --}}
-            <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+            <div class="grid grid-cols-2 md:grid-cols-5 gap-3">
                 @if($serving)
                 <form action="{{ route('admin.serve', $serving->id) }}" method="POST">
                     @csrf
-                    <button class="w-full py-3 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-sm rounded-2xl border border-emerald-500 transition-colors flex items-center justify-center gap-1.5 shadow-lg">
+                    <button class="w-full py-3 bg-emerald-600 hover:bg-emerald-500 text-gray-900 font-bold text-sm rounded-2xl border border-emerald-500 transition-colors flex items-center justify-center gap-1.5 shadow-lg">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
                         Serve
                     </button>
@@ -197,20 +181,30 @@
                 @endif
 
                 <form action="{{ route('admin.call-next') }}" method="POST"
-                      class="{{ $serving ? '' : 'col-span-2 md:col-span-4' }}">
+                      class="{{ $serving ? '' : 'col-span-1 md:col-span-1' }}">
                     @csrf
+                    <input type="hidden" name="type" value="priority">
+                    <button class="w-full py-3 bg-amber-500 hover:bg-amber-400 text-white font-extrabold text-sm rounded-2xl border border-amber-500 transition-colors flex items-center justify-center gap-1.5 shadow-xl">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+                        Priority
+                    </button>
+                </form>
+                <form action="{{ route('admin.call-next') }}" method="POST"
+                      class="{{ $serving ? '' : 'col-span-1 md:col-span-1' }}">
+                    @csrf
+                    <input type="hidden" name="type" value="regular">
                     <button class="w-full py-3 bg-indigo-600 hover:bg-indigo-500 text-white font-extrabold text-sm rounded-2xl border border-indigo-500 transition-colors flex items-center justify-center gap-1.5 shadow-xl">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"/></svg>
-                        Call Next
+                        Regular
                     </button>
                 </form>
             </div>
         </div>
 
         {{-- ── QR CAMERA SCANNER (embedded, external camera) ─────────── --}}
-        <div class="glass-panel rounded-3xl p-6 border border-gray-800 flex flex-col gap-4">
-            <div class="flex items-center justify-between border-b border-gray-900 pb-3">
-                <h3 class="text-sm font-bold text-gray-400 uppercase tracking-widest flex items-center gap-2">
+        <div class="glass-panel rounded-3xl p-6 border border-gray-200 flex flex-col gap-4">
+            <div class="flex items-center justify-between border-b border-gray-300 pb-3">
+                <h3 class="text-sm font-bold text-gray-600 uppercase tracking-widest flex items-center gap-2">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0a8 8 0 11-16 0 8 8 0 0116 0z"/>
                     </svg>
@@ -219,20 +213,19 @@
                 <div class="flex items-center gap-2">
                     {{-- Camera selector --}}
                     <select id="cameraSelect"
-                            class="text-xs bg-gray-900 border border-gray-700 text-gray-300 rounded-lg px-2 py-1 focus:outline-none">
+                            class="text-xs bg-white border border-gray-700 text-gray-300 rounded-lg px-2 py-1 focus:outline-none">
                         <option value="">Loading cameras…</option>
                     </select>
                     <button id="toggleScanner"
-                            class="px-4 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold rounded-lg border border-emerald-500 transition-colors">
+                            class="px-4 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-gray-900 text-xs font-bold rounded-lg border border-emerald-500 transition-colors">
                         Start Scanner
                     </button>
                 </div>
             </div>
 
             {{-- Camera preview area --}}
-            <div class="relative rounded-2xl overflow-hidden bg-gray-950 border border-gray-900" style="min-height:220px;">
+            <div class="relative rounded-2xl overflow-hidden bg-gray-50 border border-gray-300" style="min-height:220px;">
                 <div id="scannerPreview" class="w-full" style="min-height:220px;"></div>
-                <div class="scan-laser-overlay hidden" id="scanLaser"></div>
 
                 {{-- Idle overlay --}}
                 <div id="scannerIdle" class="absolute inset-0 flex flex-col items-center justify-center text-gray-700 gap-3">
@@ -254,40 +247,53 @@
     <div class="lg:col-span-5 flex flex-col gap-6">
 
         {{-- PRINT CENTER --}}
-        <div class="glass-panel rounded-3xl p-6 border border-gray-800 flex flex-col gap-4">
-            <h3 class="text-sm font-bold text-gray-400 uppercase tracking-widest flex items-center gap-2 border-b border-gray-900 pb-3">
+        <div class="glass-panel rounded-3xl p-6 border border-gray-200 flex flex-col gap-4">
+            <h3 class="text-sm font-bold text-gray-600 uppercase tracking-widest flex items-center gap-2 border-b border-gray-300 pb-3">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/>
                 </svg>
                 Token QR Print Center
             </h3>
 
-            <div class="p-4 rounded-2xl bg-gray-950/50 border border-gray-900">
+            <div class="p-4 rounded-2xl bg-gray-50/50 border border-gray-300">
                 <span class="text-xs uppercase text-gray-500 font-bold tracking-wider">Batch Print</span>
                 <form action="{{ route('admin.print') }}" method="GET" target="_blank" class="mt-3 flex items-end gap-2">
                     <input type="hidden" name="type" value="batch">
                     <div class="flex-1">
+                        <label class="text-[10px] uppercase font-bold text-gray-500 block mb-1">Queue Type</label>
+                        <select name="prefix" class="w-full px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm text-center text-gray-900 focus:outline-none">
+                            <option value="">Regular</option>
+                            <option value="P-">Priority</option>
+                        </select>
+                    </div>
+                    <div class="flex-1">
                         <label class="text-[10px] uppercase font-bold text-gray-500 block mb-1">Start</label>
                         <input type="number" name="start" value="1" min="1" max="999"
-                               class="w-full px-3 py-2 bg-gray-900 border border-gray-800 rounded-lg text-sm text-center text-white focus:outline-none">
+                               class="w-full px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm text-center text-gray-900 focus:outline-none">
                     </div>
                     <div class="flex-1">
                         <label class="text-[10px] uppercase font-bold text-gray-500 block mb-1">End</label>
                         <input type="number" name="end" value="50" min="1" max="999"
-                               class="w-full px-3 py-2 bg-gray-900 border border-gray-800 rounded-lg text-sm text-center text-white focus:outline-none">
+                               class="w-full px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm text-center text-gray-900 focus:outline-none">
                     </div>
-                    <button type="submit" class="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white font-bold text-sm rounded-lg border border-blue-500 transition-colors">
+                    <button type="submit" class="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-gray-900 font-bold text-sm rounded-lg border border-blue-500 transition-colors">
                         Print
                     </button>
                 </form>
             </div>
 
-            <div class="p-4 rounded-2xl bg-gray-950/50 border border-gray-900">
+            <div class="p-4 rounded-2xl bg-gray-50/50 border border-gray-300">
                 <span class="text-xs uppercase text-gray-500 font-bold tracking-wider">Single Ticket Reprint</span>
                 <form action="{{ route('admin.print') }}" method="GET" target="_blank" class="mt-3 flex items-end gap-2">
                     <input type="hidden" name="type" value="single">
+                    <div class="w-24">
+                        <select name="prefix" class="w-full px-2 py-2 bg-white border border-gray-200 rounded-lg text-sm text-center text-gray-900 focus:outline-none">
+                            <option value="">Reg</option>
+                            <option value="P-">Prio</option>
+                        </select>
+                    </div>
                     <input type="number" name="number" placeholder="e.g. 042" min="1" max="999" required
-                           class="flex-1 px-4 py-2 bg-gray-900 border border-gray-800 rounded-lg text-sm text-center text-white focus:outline-none">
+                           class="flex-1 px-4 py-2 bg-white border border-gray-200 rounded-lg text-sm text-center text-gray-900 focus:outline-none">
                     <button type="submit" class="px-5 py-2 bg-gray-800 hover:bg-gray-700 text-gray-200 font-bold text-sm rounded-lg border border-gray-700 transition-colors">
                         Print
                     </button>
@@ -296,8 +302,8 @@
         </div>
 
         {{-- PENDING FIFO LIST --}}
-        <div class="glass-panel rounded-3xl p-6 border border-gray-800 flex flex-col">
-            <h3 class="text-sm font-bold text-gray-400 uppercase tracking-widest mb-4 flex items-center gap-2 border-b border-gray-900 pb-3">
+        <div class="glass-panel rounded-3xl p-6 border border-gray-200 flex flex-col">
+            <h3 class="text-sm font-bold text-gray-600 uppercase tracking-widest mb-4 flex items-center gap-2 border-b border-gray-300 pb-3">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-amber-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2"/>
                 </svg>
@@ -305,10 +311,10 @@
             </h3>
             <div class="max-h-64 overflow-y-auto flex flex-col gap-2 pr-1">
                 @forelse($pending as $index => $item)
-                <div class="flex items-center justify-between p-3 bg-gray-900/40 rounded-xl border border-gray-900/60">
+                <div class="flex items-center justify-between p-3 bg-white/40 rounded-xl border border-gray-300/60">
                     <div class="flex items-center gap-3">
-                        <span class="w-6 h-6 rounded-full bg-gray-950 text-gray-400 text-xs flex items-center justify-center font-bold">{{ $index + 1 }}</span>
-                        <span class="text-lg font-bold text-white font-mono tracking-widest">{{ $item->token_number }}</span>
+                        <span class="w-6 h-6 rounded-full bg-gray-50 text-gray-600 text-xs flex items-center justify-center font-bold">{{ $index + 1 }}</span>
+                        <span class="text-lg font-bold text-gray-900 font-mono tracking-widest">{{ $item->token_number }}</span>
                     </div>
                     <span class="text-[11px] text-gray-500 font-semibold uppercase">{{ $item->created_at->diffForHumans() }}</span>
                 </div>
@@ -319,8 +325,8 @@
         </div>
 
         {{-- HISTORY + RESET --}}
-        <div class="glass-panel rounded-3xl p-6 border border-gray-800 flex flex-col gap-4">
-            <h3 class="text-sm font-bold text-gray-400 uppercase tracking-widest flex items-center gap-2 border-b border-gray-900 pb-3">
+        <div class="glass-panel rounded-3xl p-6 border border-gray-200 flex flex-col gap-4">
+            <h3 class="text-sm font-bold text-gray-600 uppercase tracking-widest flex items-center gap-2 border-b border-gray-300 pb-3">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
                 </svg>
@@ -330,8 +336,8 @@
             <div class="max-h-48 overflow-y-auto flex flex-col gap-2 pr-1">
                 @php $history = $served->merge($skipped)->sortByDesc('updated_at')->take(10); @endphp
                 @forelse($history as $item)
-                <div class="flex items-center justify-between p-3 bg-gray-900/20 rounded-xl border border-gray-900/40">
-                    <span class="text-base font-bold text-gray-400 font-mono tracking-widest">{{ $item->token_number }}</span>
+                <div class="flex items-center justify-between p-3 bg-white/20 rounded-xl border border-gray-300/40">
+                    <span class="text-base font-bold text-gray-600 font-mono tracking-widest">{{ $item->token_number }}</span>
                     <div class="flex items-center gap-2">
                         @if($item->status === 'served')
                         <span class="text-[10px] font-bold uppercase px-2 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400">Served</span>
@@ -346,9 +352,9 @@
                 @endforelse
             </div>
 
-            <div class="flex justify-between items-center pt-4 border-t border-gray-900">
+            <div class="flex justify-between items-center pt-4 border-t border-gray-300">
                 <div>
-                    <span class="text-xs font-bold text-gray-400 uppercase tracking-widest">Clear Daily Counter</span>
+                    <span class="text-xs font-bold text-gray-600 uppercase tracking-widest">Clear Daily Counter</span>
                     <p class="text-[10px] text-gray-600">Deletes all tokens and restarts from zero.</p>
                 </div>
                 <form action="{{ route('admin.reset') }}" method="POST" onsubmit="return confirmReset(event);">
@@ -434,7 +440,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const cameraSelect = document.getElementById('cameraSelect');
     const previewDiv   = document.getElementById('scannerPreview');
     const idleOverlay  = document.getElementById('scannerIdle');
-    const laser        = document.getElementById('scanLaser');
     const toast        = document.getElementById('scanToast');
 
     let scanner     = null;
@@ -483,7 +488,6 @@ document.addEventListener('DOMContentLoaded', () => {
         ).then(() => {
             scannerActive = true;
             idleOverlay.classList.add('hidden');
-            laser.classList.remove('hidden');
             toggleBtn.textContent = 'Stop Scanner';
             toggleBtn.classList.replace('bg-emerald-600', 'bg-rose-700');
             toggleBtn.classList.replace('hover:bg-emerald-500', 'hover:bg-rose-600');
@@ -500,7 +504,6 @@ document.addEventListener('DOMContentLoaded', () => {
                     scanner = null;
                     scannerActive = false;
                     idleOverlay.classList.remove('hidden');
-                    laser.classList.add('hidden');
                     toggleBtn.textContent = 'Start Scanner';
                     toggleBtn.classList.replace('bg-rose-700', 'bg-emerald-600');
                     toggleBtn.classList.replace('hover:bg-rose-600', 'hover:bg-emerald-500');

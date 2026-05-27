@@ -37,8 +37,10 @@ class AdminController extends Controller
     /**
      * Call the next token in the queue (FIFO).
      */
-    public function callNext()
+    public function callNext(Request $request)
     {
+        $type = $request->input('type', 'regular');
+
         // Automatically mark currently serving token as served to free the spot
         $currentServing = QueueToken::serving()->first();
         if ($currentServing) {
@@ -48,12 +50,19 @@ class AdminController extends Controller
             ]);
         }
 
-        // Fetch the oldest pending token (FIFO)
-        $nextToken = QueueToken::pending()->first();
-
-        if (!$nextToken) {
-            return redirect()->route('admin.dashboard')
-                ->with('warning', 'No pending tokens in the queue.');
+        // Fetch the oldest pending token (FIFO) based on type
+        if ($type === 'priority') {
+            $nextToken = QueueToken::pending()->where('token_number', 'LIKE', 'P-%')->first();
+            if (!$nextToken) {
+                return redirect()->route('admin.dashboard')
+                    ->with('warning', 'No pending priority tokens in the queue.');
+            }
+        } else {
+            $nextToken = QueueToken::pending()->where('token_number', 'NOT LIKE', 'P-%')->first();
+            if (!$nextToken) {
+                return redirect()->route('admin.dashboard')
+                    ->with('warning', 'No pending regular tokens in the queue.');
+            }
         }
 
         // Mark next token as serving
@@ -139,13 +148,14 @@ class AdminController extends Controller
     public function printTemplate(Request $request)
     {
         $type = $request->query('type', 'batch');
+        $prefix = $request->query('prefix', '');
         $tokens = [];
 
         if ($type === 'single') {
             $number = $request->query('number', '001');
             // Pad to 3 digits
             $number = str_pad(filter_var($number, FILTER_SANITIZE_NUMBER_INT), 3, '0', STR_PAD_LEFT);
-            $tokens[] = $number;
+            $tokens[] = $prefix . $number;
         } else {
             // Batch print range
             $start = (int) $request->query('start', 1);
@@ -161,7 +171,7 @@ class AdminController extends Controller
             }
 
             for ($i = $start; $i <= $end; $i++) {
-                $tokens[] = str_pad($i, 3, '0', STR_PAD_LEFT);
+                $tokens[] = $prefix . str_pad($i, 3, '0', STR_PAD_LEFT);
             }
         }
 

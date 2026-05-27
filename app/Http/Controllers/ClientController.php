@@ -23,18 +23,20 @@ class ClientController extends Controller
     {
         $rawNumber = $request->input('token_number');
         
-        // Sanitize: keep only numeric digits
-        $cleanNumber = preg_replace('/[^0-9]/', '', $rawNumber);
+        // Sanitize: keep only numbers, P, and hyphen
+        $cleanNumber = strtoupper(preg_replace('/[^0-9P\-]/i', '', $rawNumber));
 
-        // 1. Format Validation: must be numeric and represent 1-999
-        if (empty($cleanNumber)) {
+        // 1. Format Validation: must match optional P- and digits
+        if (!preg_match('/^(P-)?(\d+)$/', $cleanNumber, $matches)) {
             return response()->json([
                 'success' => false,
-                'message' => 'Invalid scan. Please scan a valid 3-digit QR token.'
+                'message' => 'Invalid scan. Please scan a valid token.'
             ], 422);
         }
 
-        $intNumber = (int) $cleanNumber;
+        $prefix = $matches[1] ?? '';
+        $intNumber = (int) $matches[2];
+        
         if ($intNumber < 1 || $intNumber > 999) {
             return response()->json([
                 'success' => false,
@@ -42,8 +44,8 @@ class ClientController extends Controller
             ], 422);
         }
 
-        // Pad to exactly 3 digits (e.g., 42 -> 042)
-        $tokenNumber = str_pad($intNumber, 3, '0', STR_PAD_LEFT);
+        // Pad to exactly 3 digits (e.g., 42 -> P-042 or 042)
+        $tokenNumber = $prefix . str_pad($intNumber, 3, '0', STR_PAD_LEFT);
 
         // 2. Capacity Check: check if daily limit is reached
         $dailyLimit = (int) Setting::get('daily_limit', 100);

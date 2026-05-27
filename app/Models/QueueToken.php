@@ -16,10 +16,12 @@ class QueueToken extends Model
 
     /**
      * Scope to only include tokens created today.
+     * Note: We return the raw query here because the admin manually
+     * resets/clears the database every day. This avoids timezone discrepancies.
      */
     public function scopeToday($query)
     {
-        return $query->whereDate('created_at', Carbon::today());
+        return $query;
     }
 
     /**

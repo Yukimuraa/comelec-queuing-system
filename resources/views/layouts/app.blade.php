@@ -22,8 +22,8 @@
     <style>
         body {
             font-family: 'Outfit', sans-serif;
-            background: radial-gradient(circle at 50% 50%, #111827 0%, #030712 100%);
-            color: #f3f4f6;
+            background: radial-gradient(circle at 50% 50%, #ffffff 0%, #f3f4f6 100%);
+            color: #111827;
             min-height: 100vh;
             display: flex;
             flex-direction: column;
@@ -32,26 +32,26 @@
 
         /* Glassmorphism utility */
         .glass-panel {
-            background: rgba(17, 24, 39, 0.7);
+            background: rgba(255, 255, 255, 0.85);
             backdrop-filter: blur(16px);
             -webkit-backdrop-filter: blur(16px);
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+            border: 1px solid rgba(0, 0, 0, 0.05);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.05);
         }
 
         .glass-card {
-            background: rgba(255, 255, 255, 0.03);
+            background: rgba(255, 255, 255, 0.6);
             backdrop-filter: blur(12px);
             -webkit-backdrop-filter: blur(12px);
-            border: 1px solid rgba(255, 255, 255, 0.05);
-            box-shadow: 0 4px 20px 0 rgba(0, 0, 0, 0.2);
+            border: 1px solid rgba(0, 0, 0, 0.04);
+            box-shadow: 0 4px 20px 0 rgba(0, 0, 0, 0.04);
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
         .glass-card:hover {
-            border-color: rgba(255, 255, 255, 0.1);
+            border-color: rgba(99, 102, 241, 0.3);
             transform: translateY(-2px);
-            box-shadow: 0 8px 30px 0 rgba(0, 0, 0, 0.3);
+            box-shadow: 0 8px 30px 0 rgba(99, 102, 241, 0.15);
         }
 
         /* Ambient glows */
@@ -80,14 +80,14 @@
             width: 8px;
         }
         ::-webkit-scrollbar-track {
-            background: rgba(0, 0, 0, 0.2);
+            background: rgba(0, 0, 0, 0.05);
         }
         ::-webkit-scrollbar-thumb {
-            background: rgba(255, 255, 255, 0.1);
+            background: rgba(0, 0, 0, 0.15);
             border-radius: 4px;
         }
         ::-webkit-scrollbar-thumb:hover {
-            background: rgba(255, 255, 255, 0.2);
+            background: rgba(0, 0, 0, 0.3);
         }
     </style>
     @yield('styles')
@@ -103,21 +103,21 @@
                 </svg>
             </div>
             <div class="flex flex-col">
-                <span class="font-bold text-lg tracking-tight bg-gradient-to-r from-white via-gray-200 to-gray-400 bg-clip-text text-transparent">COMELEC QMS</span>
+                <span class="font-bold text-lg tracking-tight text-gray-900">COMELEC QMS</span>
                 <span class="text-xs text-gray-500 font-medium tracking-wider uppercase">Queue Management System</span>
             </div>
         </a>
 
         <!-- Portal quick links -->
         <nav class="flex items-center gap-2 md:gap-4">
-            <a href="{{ url('/') }}" class="px-4 py-2 text-sm font-semibold rounded-lg hover:bg-gray-800 transition-colors text-gray-300">
+            <a href="{{ url('/') }}" class="px-4 py-2 text-sm font-semibold rounded-lg hover:bg-gray-100 transition-colors text-gray-600">
                 Portal Home
             </a>
-            <a href="{{ route('client.scan') }}" class="px-4 py-2 text-sm font-semibold rounded-lg hover:bg-gray-800 transition-colors text-gray-300 flex items-center gap-1.5">
+            <a href="{{ route('client.scan') }}" class="px-4 py-2 text-sm font-semibold rounded-lg hover:bg-gray-100 transition-colors text-gray-600 flex items-center gap-1.5">
                 <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
                 Scan Station
             </a>
-            <a href="{{ route('display.tv') }}" class="px-4 py-2 text-sm font-semibold rounded-lg hover:bg-gray-800 transition-colors text-gray-300 flex items-center gap-1.5">
+            <a href="{{ route('display.tv') }}" class="px-4 py-2 text-sm font-semibold rounded-lg hover:bg-gray-100 transition-colors text-gray-600 flex items-center gap-1.5">
                 <span class="w-2 h-2 rounded-full bg-indigo-500 animate-pulse"></span>
                 TV Display
             </a>
@@ -130,7 +130,7 @@
     </main>
 
     <!-- Footer -->
-    <footer class="w-full text-center py-6 text-xs text-gray-600 border-t border-gray-900 mt-auto">
+    <footer class="w-full text-center py-6 text-xs text-gray-500 border-t border-gray-200 mt-auto">
         <p>&copy; {{ date('Y') }} Commission on Elections. All Rights Reserved. Powered by SQLite & Laravel.</p>
     </footer>
 
