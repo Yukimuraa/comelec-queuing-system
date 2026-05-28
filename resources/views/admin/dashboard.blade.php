@@ -116,49 +116,7 @@
             </div>
         </div>
 
-        {{-- ── QR CAMERA SCANNER (embedded, external camera) ─────────── --}}
-        <div class="glass-panel rounded-3xl p-6 border border-gray-200 flex flex-col gap-4">
-            <div class="flex items-center justify-between border-b border-gray-300 pb-3">
-                <h3 class="text-sm font-bold text-gray-600 uppercase tracking-widest flex items-center gap-2">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0a8 8 0 11-16 0 8 8 0 0116 0z"/>
-                    </svg>
-                    QR Token Scanner
-                </h3>
-                <div class="flex items-center gap-2">
-                    {{-- Camera selector --}}
-                    <select id="cameraSelect"
-                            class="text-xs bg-white border border-gray-700 text-gray-300 rounded-lg px-2 py-1 focus:outline-none">
-                        <option value="">Loading cameras…</option>
-                    </select>
-                    <button id="toggleScanner"
-                            class="px-4 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-gray-900 text-xs font-bold rounded-lg border border-emerald-500 transition-colors">
-                        Start Scanner
-                    </button>
-                </div>
-            </div>
-
-            {{-- Camera preview area --}}
-            <div class="relative rounded-2xl overflow-hidden bg-gray-50 border border-gray-300" style="min-height:220px;">
-                <div id="scannerPreview" class="w-full" style="min-height:220px;"></div>
-
-                {{-- Idle overlay --}}
-                <div id="scannerIdle" class="absolute inset-0 flex flex-col items-center justify-center text-gray-700 gap-3">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-14 w-14" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/>
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"/>
-                    </svg>
-                    <span class="text-sm font-semibold">Waiting for camera permission…</span>
-                </div>
-            </div>
-        </div>
-
-    </div>
-
-    {{-- ─── RIGHT COLUMN: PRINT CENTER + QUEUE LISTS (5 cols) ──────── --}}
-    <div class="lg:col-span-5 flex flex-col gap-6">
-
-        {{-- PRINT CENTER --}}
+        {{-- PRINT CENTER (moved to left column) --}}
         <div class="glass-panel rounded-3xl p-6 border border-gray-200 flex flex-col gap-4">
             <h3 class="text-sm font-bold text-gray-600 uppercase tracking-widest flex items-center gap-2 border-b border-gray-300 pb-3">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -213,6 +171,45 @@
             </div>
         </div>
 
+    </div>
+
+    {{-- ─── RIGHT COLUMN: PRINT CENTER + QUEUE LISTS (5 cols) ──────── --}}
+    <div class="lg:col-span-5 flex flex-col gap-6">
+
+        {{-- ── QR CAMERA SCANNER (moved to right column) ─────────── --}}
+        <div class="glass-panel rounded-3xl p-6 border border-gray-200 flex flex-col gap-4">
+            <div class="flex items-center justify-between border-b border-gray-300 pb-3">
+                <h3 class="text-sm font-bold text-gray-600 uppercase tracking-widest flex items-center gap-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0a8 8 0 11-16 0 8 8 0 0116 0z"/>
+                    </svg>
+                    QR Token Scanner
+                </h3>
+                <div class="flex items-center gap-2">
+                    <select id="cameraSelect"
+                            class="text-xs bg-white border border-gray-700 text-gray-300 rounded-lg px-2 py-1 focus:outline-none">
+                        <option value="">Loading cameras…</option>
+                    </select>
+                    <button id="toggleScanner"
+                            class="px-4 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-gray-900 text-xs font-bold rounded-lg border border-emerald-500 transition-colors">
+                        Start Scanner
+                    </button>
+                </div>
+            </div>
+
+            <div class="relative rounded-2xl overflow-hidden bg-gray-50 border border-gray-300" style="min-height:220px;">
+                <div id="scannerPreview" class="w-full" style="min-height:220px;"></div>
+
+                <div id="scannerIdle" class="absolute inset-0 flex flex-col items-center justify-center text-gray-700 gap-3">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-14 w-14" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"/>
+                    </svg>
+                    <span class="text-sm font-semibold">Waiting for camera permission…</span>
+                </div>
+            </div>
+        </div>
+
         {{-- PENDING FIFO LIST --}}
         <div class="glass-panel rounded-3xl p-6 border border-gray-200 flex flex-col">
             <h3 class="text-sm font-bold text-gray-600 uppercase tracking-widest mb-4 flex items-center gap-2 border-b border-gray-300 pb-3">
@@ -222,6 +219,19 @@
                 Pending Queue (FIFO)
             </h3>
             <div id="pendingQueueList" class="max-h-64 overflow-y-auto flex flex-col gap-2 pr-1">
+                <!-- Dynamically loaded -->
+            </div>
+        </div>
+
+        {{-- SKIPPED TICKETS --}}
+        <div class="glass-panel rounded-3xl p-6 border border-gray-200 flex flex-col">
+            <h3 class="text-sm font-bold text-gray-600 uppercase tracking-widest mb-4 flex items-center gap-2 border-b border-gray-300 pb-3">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-rose-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 5.636l-1.414 1.414M6.05 17.95l-1.414 1.414M5.636 5.636l1.414 1.414M17.95 17.95l1.414 1.414M12 8v4m0 4h.01"/>
+                </svg>
+                Skipped Tickets
+            </h3>
+            <div id="skippedList" class="max-h-48 overflow-y-auto flex flex-col gap-2 pr-1">
                 <!-- Dynamically loaded -->
             </div>
         </div>
@@ -475,6 +485,7 @@ document.addEventListener('DOMContentLoaded', () => {
                             </button>
                         </form>
 <form action="{{ route('admin.call-next') }}" method="POST">
+
                             @csrf
                             <input type="hidden" name="type" value="next">
                             <button class="w-full py-3 bg-blue-600 text-white font-extrabold text-sm rounded-2xl border border-blue-600 flex items-center justify-center gap-1.5 shadow-xl">
@@ -575,7 +586,34 @@ document.addEventListener('DOMContentLoaded', () => {
                     pendingListDiv.innerHTML = '<div class="text-center py-10 text-gray-650 font-semibold text-sm">No clients currently waiting</div>';
                 }
 
-                // 5. Update History List (Served tokens only)
+                // 5. Update Skipped Tickets list
+                const skippedListDiv = document.getElementById('skippedList');
+                if (skippedListDiv) {
+                    if (data.skipped && data.skipped.length > 0) {
+                        let skippedHtml = '';
+                        data.skipped.forEach(item => {
+                            skippedHtml += `
+                                <div class="flex items-center justify-between p-3 bg-rose-500/5 rounded-xl border border-rose-500/20">
+                                    <div class="flex items-center gap-3">
+                                        <span class="text-base font-bold text-rose-600 font-mono tracking-widest">${item.token_number}</span>
+                                        <form action="/admin/recall/${item.id}" method="POST">
+                                            @csrf
+                                            <button type="submit" class="px-2.5 py-1 rounded-lg text-[10px] font-extrabold uppercase bg-blue-600 text-white border border-blue-600 hover:bg-blue-500 transition-colors">
+                                                Re-call
+                                            </button>
+                                        </form>
+                                    </div>
+                                    <span class="device-time text-[10px] text-gray-600 font-bold" data-timestamp="${item.skipped_at_iso || ''}"></span>
+                                </div>
+                            `;
+                        });
+                        skippedListDiv.innerHTML = skippedHtml;
+                    } else {
+                        skippedListDiv.innerHTML = '<div class="text-center py-6 text-gray-650 font-semibold text-sm">No skipped tickets</div>';
+                    }
+                }
+
+                // 6. Update History List (Served only)
                 const historyListDiv = document.getElementById('historyList');
                 if (data.history && data.history.length > 0) {
                     let historyHtml = '';

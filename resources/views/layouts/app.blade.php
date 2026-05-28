@@ -22,12 +22,62 @@
     <style>
         body {
             font-family: 'Outfit', sans-serif;
-            background: radial-gradient(circle at 50% 50%, #ffffff 0%, #f3f4f6 100%);
+            /* Light mode background (requested: light grey) */
+            background: #f3f4f6;
             color: #111827;
             min-height: 100vh;
             display: flex;
             flex-direction: column;
             overflow-x: hidden;
+        }
+
+        html.dark body {
+            background: #0b1220;
+            color: #ffffff;
+        }
+
+        html.dark .glass-panel {
+            background: rgba(17, 24, 39, 0.75);
+            border-color: rgba(255, 255, 255, 0.06);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.35);
+        }
+
+        html.dark footer {
+            border-color: rgba(255, 255, 255, 0.08);
+            color: rgba(229, 231, 235, 0.7);
+        }
+
+        /* Force common Tailwind gray text colors to be readable in dark mode */
+        html.dark .text-gray-900,
+        html.dark .text-gray-800,
+        html.dark .text-gray-700,
+        html.dark .text-gray-650,
+        html.dark .text-gray-600 {
+            color: #ffffff !important;
+        }
+
+        html.dark .text-gray-500,
+        html.dark .text-gray-400 {
+            color: rgba(229, 231, 235, 0.85) !important;
+        }
+
+        html.dark .border-gray-200,
+        html.dark .border-gray-300 {
+            border-color: rgba(255, 255, 255, 0.12) !important;
+        }
+
+        html.dark .bg-white,
+        html.dark .bg-gray-50,
+        html.dark .bg-white\/40,
+        html.dark .bg-white\/20 {
+            background-color: rgba(17, 24, 39, 0.55) !important;
+        }
+
+        html.dark input,
+        html.dark select,
+        html.dark textarea {
+            color: #ffffff;
+            background-color: rgba(17, 24, 39, 0.65);
         }
 
         /* Glassmorphism utility */
@@ -121,8 +171,17 @@
             </div>
         </div>
 
-        <!-- Portal quick links -->
+        <!-- Portal quick links + theme toggle -->
         <nav class="flex items-center gap-2 md:gap-4">
+            <button id="themeToggle"
+                type="button"
+                class="px-3 py-2 text-sm font-semibold rounded-lg border border-gray-200 bg-white/40 hover:bg-gray-100 transition-colors text-gray-600 flex items-center gap-2"
+                aria-label="Toggle light or dark mode">
+                <span id="themeIcon" class="w-4 h-4 inline-flex items-center justify-center">
+                    <!-- icon injected by JS -->
+                </span>
+                <span id="themeLabel" class="hidden md:inline">Light</span>
+            </button>
             <a href="{{ url('/') }}" class="px-4 py-2 text-sm font-semibold rounded-lg hover:bg-gray-100 transition-colors text-gray-600">
                 Portal Home
             </a>
@@ -153,6 +212,37 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', () => {
+            // Theme toggle (persisted)
+            const root = document.documentElement;
+            const toggleBtn = document.getElementById('themeToggle');
+            const themeLabel = document.getElementById('themeLabel');
+            const themeIcon = document.getElementById('themeIcon');
+
+            function setTheme(mode) {
+                if (mode === 'dark') root.classList.add('dark');
+                else root.classList.remove('dark');
+                try { localStorage.setItem('qms_theme', mode); } catch (e) {}
+
+                if (themeLabel) themeLabel.textContent = mode === 'dark' ? 'Dark' : 'Light';
+                if (themeIcon) {
+                    themeIcon.innerHTML = mode === 'dark'
+                        ? '<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path d="M17.293 13.293A8 8 0 016.707 2.707a8 8 0 1010.586 10.586z"/></svg>'
+                        : '<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4.22 2.47a1 1 0 010 1.41l-.71.71a1 1 0 11-1.41-1.41l.71-.71a1 1 0 011.41 0zM18 9a1 1 0 100 2h-1a1 1 0 100-2h1zM14.22 15.12a1 1 0 00-1.41 1.41l.71.71a1 1 0 001.41-1.41l-.71-.71zM11 16a1 1 0 10-2 0v1a1 1 0 102 0v-1zM5.78 15.12l-.71.71a1 1 0 101.41 1.41l.71-.71a1 1 0 10-1.41-1.41zM3 11a1 1 0 100-2H2a1 1 0 100 2h1zm2.78-6.12a1 1 0 00-1.41 1.41l.71.71A1 1 0 105.78 6.3l-.71-.71zM10 6a4 4 0 100 8 4 4 0 000-8z" clip-rule="evenodd"/></svg>';
+                }
+            }
+
+            let saved = null;
+            try { saved = localStorage.getItem('qms_theme'); } catch (e) {}
+            if (!saved) saved = 'light';
+            setTheme(saved);
+
+            if (toggleBtn) {
+                toggleBtn.addEventListener('click', () => {
+                    const next = root.classList.contains('dark') ? 'light' : 'dark';
+                    setTheme(next);
+                });
+            }
+
             // Live Clock
             function updateLiveTime() {
                 const now = new Date();

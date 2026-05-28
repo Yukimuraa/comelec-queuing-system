@@ -154,9 +154,28 @@ class AdminController extends Controller
      */
     public function recall(QueueToken $token)
     {
-        $token->update([
-            'called_at' => Carbon::now()
-        ]);
+        // If recalling a skipped token, bring it back to "serving" so it will
+        // appear on the calling console and trigger the TV announcement.
+        if ($token->status === 'skipped') {
+            // Free the current serving slot (same behavior as Call Next).
+            $currentServing = QueueToken::serving()->first();
+            if ($currentServing && $currentServing->id !== $token->id) {
+                $currentServing->update([
+                    'status' => 'served',
+                    'served_at' => Carbon::now(),
+                ]);
+            }
+
+            $token->update([
+                'status' => 'serving',
+                'called_at' => Carbon::now(),
+                'served_at' => null,
+            ]);
+        } else {
+            $token->update([
+                'called_at' => Carbon::now()
+            ]);
+        }
 
         if (request()->ajax() || request()->expectsJson()) {
             return response()->json([
@@ -255,6 +274,7 @@ class AdminController extends Controller
         $serving = QueueToken::serving()->first();
         $pending = QueueToken::pending()->get();
         $served = QueueToken::served()->get();
+        $skipped = QueueToken::skipped()->get();
 
         $dailyLimit = (int) Setting::get('daily_limit', 100);
         $totalToday = QueueToken::today()->count();
@@ -270,13 +290,22 @@ class AdminController extends Controller
             ];
         });
 
-        // History: only served tokens
+        // History: served tokens only
         $historyData = $served->sortByDesc('served_at')->take(10)->map(function ($item) {
             return [
                 'id' => $item->id,
                 'token_number' => $item->token_number,
                 'status' => $item->status,
                 'served_at_iso' => $item->served_at ? $item->served_at->toIso8601String() : $item->updated_at->toIso8601String(),
+            ];
+        });
+
+        // Skipped list (separate card)
+        $skippedData = $skipped->take(10)->map(function ($item) {
+            return [
+                'id' => $item->id,
+                'token_number' => $item->token_number,
+                'skipped_at_iso' => $item->updated_at ? $item->updated_at->toIso8601String() : null,
             ];
         });
 
@@ -287,6 +316,7 @@ class AdminController extends Controller
                 'called_at_iso' => $serving->called_at ? $serving->called_at->toIso8601String() : null,
             ] : null,
             'pending' => $pendingData,
+            'skipped' => $skippedData,
             'history' => $historyData,
             'dailyLimit' => $dailyLimit,
             'totalToday' => $totalToday,
