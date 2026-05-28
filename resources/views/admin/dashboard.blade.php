@@ -474,10 +474,10 @@ document.addEventListener('DOMContentLoaded', () => {
                                 Re-call
                             </button>
                         </form>
-                        <form action="{{ route('admin.call-next') }}" method="POST">
+<form action="{{ route('admin.call-next') }}" method="POST">
                             @csrf
                             <input type="hidden" name="type" value="next">
-                            <button class="w-full py-3 bg-indigo-650 text-white font-extrabold text-sm rounded-2xl border border-indigo-600 flex items-center justify-center gap-1.5 shadow-xl">
+                            <button class="w-full py-3 bg-blue-600 text-white font-extrabold text-sm rounded-2xl border border-blue-600 flex items-center justify-center gap-1.5 shadow-xl">
                                 <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"/></svg>
                                 Call Next
                             </button>
@@ -486,7 +486,7 @@ document.addEventListener('DOMContentLoaded', () => {
                             <form action="{{ route('admin.call-next') }}" method="POST">
                                 @csrf
                                 <input type="hidden" name="type" value="priority">
-                                <button class="w-full py-3 bg-amber-500 hover:bg-amber-400 text-white font-bold text-xs rounded-2xl border border-amber-500 transition-colors flex items-center justify-center gap-1 shadow-xl">
+                                <button class="w-full py-3 bg-amber-500 hover:bg-amber-400 text-black font-bold text-xs rounded-2xl border border-amber-500 transition-colors flex items-center justify-center gap-1 shadow-xl">
                                     Prio
                                 </button>
                             </form>
@@ -528,7 +528,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         <form action="{{ route('admin.call-next') }}" method="POST" class="col-span-2 md:col-span-3">
                             @csrf
                             <input type="hidden" name="type" value="next">
-                            <button class="w-full py-3 bg-indigo-650 text-white font-extrabold text-sm rounded-2xl border border-indigo-600 flex items-center justify-center gap-1.5 shadow-xl">
+                            <button class="w-full py-3 bg-blue-600 text-white font-extrabold text-sm rounded-2xl border border-blue-600 flex items-center justify-center gap-1.5 shadow-xl">
                                 <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"/></svg>
                                 Call Next (FIFO)
                             </button>
