@@ -163,25 +163,25 @@
 
         // Voice Announcement using Web Speech API (Digit by Digit)
         function speakNumber(number) {
+            if (window.QmsVoice) {
+                window.QmsVoice.speak(number, { location: 'counter', rate: 0.85 });
+                return;
+            }
             if (!window.speechSynthesis) return;
 
-            // Clear any active speak calls to prevent overlap lags
             window.speechSynthesis.cancel();
 
-            // Format number to individual spoken digits (e.g. "0 4 2" -> "zero four two")
-            const digitsArray = number.split('');
-            const spokenDigits = digitsArray.map(d => {
-                if (d === '0') return 'zero';
-                return d;
-            }).join(' ');
+            const isPriority = /^P-/i.test(String(number).trim());
+            const numeric = String(number).trim().replace(/^P-/i, '');
+            const spokenDigits = numeric.split('').map(d => d === '0' ? 'zero' : d).join(' ');
+            const label = isPriority ? 'priority token number' : 'token number';
 
             const msg = new SpeechSynthesisUtterance();
-            msg.text = `Now serving, token number ${spokenDigits}. Please proceed to the counter.`;
+            msg.text = `Now serving, ${label} ${spokenDigits}. Please proceed to the counter.`;
             msg.volume = 1.0;
-            msg.rate = 0.85; // Read slightly slower for clear broadcast voice
+            msg.rate = 0.85;
             msg.pitch = 1.0;
-            
-            // Set english default voice if available
+
             const voices = window.speechSynthesis.getVoices();
             const englishVoice = voices.find(v => v.lang.startsWith('en'));
             if (englishVoice) {

@@ -3,6 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#2563eb">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-title" content="COMELEC QMS">
+    <link rel="manifest" href="{{ asset('manifest.webmanifest') }}">
+    <link rel="icon" href="{{ asset('icons/icon.svg') }}" type="image/svg+xml">
+    <link rel="apple-touch-icon" href="{{ asset('icons/icon.svg') }}">
     <title>QMS Portal - Queue Management System</title>
     
     <!-- Google Fonts: Outfit -->
@@ -55,12 +62,30 @@
             transform: translateY(-5px);
             box-shadow: 0 30px 60px rgba(99, 102, 241, 0.15);
         }
+
+        html.pwa-blocked body > .portal-glow,
+        html.pwa-blocked body > .portal-content {
+            display: none !important;
+        }
+        html.pwa-blocked #pwaGate {
+            display: flex !important;
+        }
     </style>
+    <script src="{{ asset('js/qms-pwa.js') }}" defer></script>
 </head>
 <body class="p-6">
+
+    <div id="pwaGate" class="hidden fixed inset-0 z-[9999] flex items-center justify-center bg-gradient-to-br from-blue-700 to-indigo-900 p-6">
+        <div class="max-w-md w-full bg-white rounded-3xl shadow-2xl p-8 text-center">
+            <h1 class="text-xl font-extrabold text-gray-900 mb-2">Open COMELEC QMS App</h1>
+            <p class="text-sm text-gray-600 mb-6">Run <strong>start_comelec_qms.bat</strong> to open QMS in app mode. Do not use a regular browser tab.</p>
+            <button id="pwaInstallBtn" type="button" class="hidden w-full py-3 mb-3 bg-blue-600 text-white font-bold rounded-xl">Install App</button>
+        </div>
+    </div>
+
     <div class="portal-glow"></div>
 
-    <div class="w-full max-w-5xl z-10 flex flex-col items-center">
+    <div class="portal-content w-full max-w-5xl z-10 flex flex-col items-center mx-auto">
         <!-- Logo Header -->
         <div class="flex flex-col items-center mb-12 text-center">
             <div class="w-16 h-16 rounded-2xl bg-gradient-to-tr from-blue-600 via-indigo-600 to-violet-600 flex items-center justify-center shadow-2xl mb-4 animate-bounce">

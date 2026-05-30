@@ -23,8 +23,8 @@ class DisplayController extends Controller
         // Fetch the currently serving token
         $serving = QueueToken::serving()->first();
 
-        // Fetch the next 4 pending tokens in queue (FIFO)
-        $pending = QueueToken::pending()
+        // Next pending tokens in call order (priority first, then regular)
+        $pending = QueueToken::pendingCallOrder()
             ->limit(4)
             ->get(['id', 'token_number']);
 

@@ -33,23 +33,42 @@ class QueueToken extends Model
     }
 
     /**
-     * Scope: priority pending tokens (token starts with 'P').
+     * Scope: priority pending tokens (e.g. P-042).
      */
     public function scopePriorityPending($query)
     {
         return $query->today()->where('status', 'pending')
-            ->where('token_number', 'like', 'P%')
+            ->where('token_number', 'like', 'P-%')
             ->orderBy('created_at', 'asc');
     }
 
     /**
-     * Scope: regular pending tokens (no letter prefix).
+     * Scope: regular pending tokens (no priority prefix).
      */
     public function scopeRegularPending($query)
     {
         return $query->today()->where('status', 'pending')
-            ->where('token_number', 'not like', 'P%')
+            ->where('token_number', 'not like', 'P-%')
             ->orderBy('created_at', 'asc');
+    }
+
+    /**
+     * Pending tokens in call order: all priority (FIFO) first, then regular (FIFO).
+     */
+    public function scopePendingCallOrder($query)
+    {
+        return $query->today()->where('status', 'pending')
+            ->orderByRaw("CASE WHEN token_number LIKE 'P-%' THEN 0 ELSE 1 END")
+            ->orderBy('created_at', 'asc');
+    }
+
+    /**
+     * Next token to call for general FIFO (priority lane first).
+     */
+    public static function nextToCall(): ?self
+    {
+        return static::priorityPending()->first()
+            ?? static::regularPending()->first();
     }
 
     /**

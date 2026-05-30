@@ -15,7 +15,7 @@ class AdminController extends Controller
     public function index()
     {
         $serving = QueueToken::serving()->first();
-        $pending = QueueToken::pending()->get();
+        $pending = QueueToken::pendingCallOrder()->get();
         $served = QueueToken::served()->get();
         $skipped = QueueToken::skipped()->get();
 
@@ -52,7 +52,7 @@ class AdminController extends Controller
 
         // Fetch the oldest pending token (FIFO) based on type
         if ($type === 'priority') {
-            $nextToken = QueueToken::pending()->where('token_number', 'LIKE', 'P-%')->first();
+            $nextToken = QueueToken::priorityPending()->first();
             if (!$nextToken) {
                 if ($request->ajax() || $request->expectsJson()) {
                     return response()->json([
@@ -64,7 +64,7 @@ class AdminController extends Controller
                     ->with('warning', 'No pending priority tokens in the queue.');
             }
         } elseif ($type === 'regular') {
-            $nextToken = QueueToken::pending()->where('token_number', 'NOT LIKE', 'P-%')->first();
+            $nextToken = QueueToken::regularPending()->first();
             if (!$nextToken) {
                 if ($request->ajax() || $request->expectsJson()) {
                     return response()->json([
@@ -76,8 +76,8 @@ class AdminController extends Controller
                     ->with('warning', 'No pending regular tokens in the queue.');
             }
         } else {
-            // General FIFO: Get the oldest pending token overall
-            $nextToken = QueueToken::pending()->first();
+            // General FIFO: priority lane first, then regular (each FIFO within lane)
+            $nextToken = QueueToken::nextToCall();
             if (!$nextToken) {
                 if ($request->ajax() || $request->expectsJson()) {
                     return response()->json([
@@ -272,7 +272,7 @@ class AdminController extends Controller
     public function status()
     {
         $serving = QueueToken::serving()->first();
-        $pending = QueueToken::pending()->get();
+        $pending = QueueToken::pendingCallOrder()->get();
         $served = QueueToken::served()->get();
         $skipped = QueueToken::skipped()->get();
 

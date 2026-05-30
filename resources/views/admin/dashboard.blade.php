@@ -279,11 +279,18 @@ document.addEventListener('DOMContentLoaded', () => {
        1. VOICE & SOUND BROADCASTER
        ══════════════════════════════════════════════════════════ */
     function speakToken(token) {
+        if (window.QmsVoice) {
+            window.QmsVoice.speak(token, { location: 'window', rate: 0.88 });
+            return;
+        }
         if (!token || !window.speechSynthesis) return;
         window.speechSynthesis.cancel();
-        const digits = token.split('').map(d => d === '0' ? 'zero' : d).join(' ');
+        const isPriority = /^P-/i.test(String(token).trim());
+        const numeric = String(token).trim().replace(/^P-/i, '');
+        const digits = numeric.split('').map(d => d === '0' ? 'zero' : d).join(' ');
+        const label = isPriority ? 'priority token number' : 'token number';
         const msg = new SpeechSynthesisUtterance(
-            `Now serving, token number ${digits}. Please proceed to the window.`
+            `Now serving, ${label} ${digits}. Please proceed to the window.`
         );
         msg.rate  = 0.88;
         msg.pitch = 1.0;

@@ -4,6 +4,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
+    <meta name="theme-color" content="#2563eb">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="COMELEC QMS">
+    <link rel="manifest" href="{{ asset('manifest.webmanifest') }}">
+    <link rel="icon" href="{{ asset('icons/icon.svg') }}" type="image/svg+xml">
+    <link rel="apple-touch-icon" href="{{ asset('icons/icon.svg') }}">
     <title>QMS - Queue Management System</title>
     
     <!-- Google Fonts: Outfit -->
@@ -139,10 +147,45 @@
         ::-webkit-scrollbar-thumb:hover {
             background: rgba(0, 0, 0, 0.3);
         }
+
+        /* PWA standalone gate — hide app in regular browser (production) */
+        html.pwa-blocked body > header,
+        html.pwa-blocked body > main,
+        html.pwa-blocked body > footer {
+            display: none !important;
+        }
+        html.pwa-blocked #pwaGate {
+            display: flex !important;
+        }
     </style>
+    <script src="{{ asset('js/qms-voice.js') }}"></script>
+    <script src="{{ asset('js/qms-pwa.js') }}" defer></script>
     @yield('styles')
 </head>
 <body class="antialiased">
+
+    {{-- PWA install gate (shown when not in standalone/app mode) --}}
+    <div id="pwaGate" class="hidden fixed inset-0 z-[9999] flex items-center justify-center bg-gradient-to-br from-blue-700 to-indigo-900 p-6">
+        <div class="max-w-md w-full bg-white rounded-3xl shadow-2xl p-8 text-center">
+            <div class="w-16 h-16 mx-auto mb-4 rounded-2xl bg-gradient-to-tr from-blue-600 to-indigo-600 flex items-center justify-center">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"/>
+                </svg>
+            </div>
+            <h1 class="text-xl font-extrabold text-gray-900 mb-2">Open COMELEC QMS App</h1>
+            <p class="text-sm text-gray-600 mb-6 leading-relaxed">
+                This system runs in <strong>App mode only</strong>. Close this browser tab and double-click
+                <strong>start_comelec_qms.bat</strong> on your desktop or project folder.
+            </p>
+            <button id="pwaInstallBtn" type="button" class="hidden w-full py-3 mb-3 bg-blue-600 text-white font-bold rounded-xl border border-blue-600 shadow-lg">
+                Install App
+            </button>
+            <div class="text-left text-xs text-gray-500 space-y-2 bg-gray-50 rounded-xl p-4 border border-gray-200">
+                <p><strong>Do not use</strong> a normal browser bookmark or address bar.</p>
+                <p><strong>Use:</strong> <code>start_comelec_qms.bat</code> — it opens QMS in app mode automatically.</p>
+            </div>
+        </div>
+    </div>
     <!-- Navbar / Header -->
     <header class="w-full glass-panel py-4 px-6 md:px-12 flex items-center justify-between z-10">
         <a href="{{ route('admin.dashboard') }}" class="flex items-center gap-3 group">

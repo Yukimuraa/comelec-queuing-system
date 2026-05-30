@@ -73,11 +73,26 @@ class ClientController extends Controller
             'status' => 'pending'
         ]);
 
-        // Calculate queue position (how many pending tokens are ahead of this one, including this one)
-        $position = QueueToken::today()
-            ->where('status', 'pending')
-            ->where('created_at', '<=', $token->created_at)
-            ->count();
+        // Queue position reflects call order: priority lane first, then regular
+        $isPriority = str_starts_with($tokenNumber, 'P-');
+        if ($isPriority) {
+            $position = QueueToken::today()
+                ->where('status', 'pending')
+                ->where('token_number', 'like', 'P-%')
+                ->where('created_at', '<=', $token->created_at)
+                ->count();
+        } else {
+            $priorityWaiting = QueueToken::today()
+                ->where('status', 'pending')
+                ->where('token_number', 'like', 'P-%')
+                ->count();
+            $regularAhead = QueueToken::today()
+                ->where('status', 'pending')
+                ->where('token_number', 'not like', 'P-%')
+                ->where('created_at', '<=', $token->created_at)
+                ->count();
+            $position = $priorityWaiting + $regularAhead;
+        }
 
         return response()->json([
             'success' => true,
